@@ -1,10 +1,6 @@
-## Writeup Template
+# Road Lane Detection
 
-### You use this file as a template for your writeup.
-
----
-
-**Lane Finding Project**
+## Goals
 
 The goals / steps of this project are the following:
 

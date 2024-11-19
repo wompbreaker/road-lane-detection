@@ -6,3 +6,9 @@ camera_cal/
 examples/
 test_images/
 test_videos/
+
+# Ignore the log files
+*.log
+
+# Ignore __pycache__ directories
+__pycache__/
