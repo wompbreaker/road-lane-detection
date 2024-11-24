@@ -15,7 +15,9 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/undistort_output.png "Undistorted"
+[image0]: ./markdown_images/original.jpg "Original"
+[image1]: ./markdown_images/undistorted_no_roi.jpg "Undistorted Without ROI"
+[image2]: ./markdown_images/undistorted_with_roi.jpg "Undistorted With ROI"
 [image2]: ./test_images/test1.jpg "Road Transformed"
 [image3]: ./examples/binary_combo_example.jpg "Binary Example"
 [image4]: ./examples/warped_straight_lines.jpg "Warp Example"
@@ -25,30 +27,56 @@ The goals / steps of this project are the following:
 
 ---
 
-### Writeup / README
+### 1. Setup
 
-#### 1. Provide a Writeup that includes all the rubric points and how you addressed each one.
+#### 1.1 Make sure to have python and pip installed
 
-You're reading it!
+#### 1.2 Set up virtual environment
+Change directory to the root of the project directory with
 
-### Camera Calibration
+`cd path/to/your/directory/road-lane-detection`. 
 
-#### 1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
+After this run `python -m venv .venv` to create a virtual environment. 
 
-The code for this step is contained in the first code located in "./examples/example.py".  
+#### 1.3 Install dependencies
+Activating the environment. First, change directories to `Scripts`
 
-I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection.  
+`cd .venv/Scripts` 
 
-I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained this result: 
+and then run `activate`. 
 
-![alt text][image1]
+To install dependecies, navigate back to the root with `cd ../..` and then run
 
-### Pipeline (single images)
+`pip install -r requirements.txt`
 
-#### 1. Provide an example of a distortion-corrected image.
+### 2. Camera Calibration
+
+#### The camera calibration is designed to perform camera calibration using a set of chessboard images. The code for this step is located in "./processing/calibration.py".  
+
+This process computes the camera calibration matrix and distortion coefficients, which are needed for correcting lens distortion in images. The number of rows and columns of the chessboard, as well as the path to the calibration images, are retrieved from a configuration file. Object points, representing 3D points in real-world space, are prepared using a NumPy array and a meshgrid. Two lists, `objpoints` and `imgpoints`, are initialized to store 3D object points and 2D image points from all images. The function iterates over each image file, reads the image with `imread`, converts it to grayscale with `cvtColor`, and finds the chessboard corners with `findChessboardCorners`. If corners are found, their positions are refined using `cornerSubPix` and added to the lists. The camera is then calibrated using these points with `calibrateCamera`, and if the calibration error exceeds a threshold, an error is logged and a ValueError is raised. The output of this function is a `.npz` file which contains calibration data that will be used in the next step.
+
+### 3. Undistorting
+
+#### The `undistort_image` function is designed to undistort an image using previously computed camera calibration parameters. The code for this step is located in "./processing/undistort.py".  
 
 To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
-![alt text][image2]
+![Original][image0]
+
+It begins by checking if the calibration data file exists at the specified path `(config.CALIBRATION_DATA_PATH)`. The calibration data, including the camera matrix (`matrix`) and distortion coefficients (`dist_coeffs`), is loaded using `np.load`. The function then reads (`imread`) the image to be undistorted from the path specified in `config.IMAGE_TO_UNDISTORT` and retrieves its dimensions. To achieve better undistortion, it computes an optimal new camera matrix and the region of interest (ROI) using `getOptimalNewCameraMatrix`. Before taking the Region of Interest (`roi`), the picture looks like this:
+
+![Undistorted Without ROI][image1]
+
+To avoid having these black corners, it adds 2 lines of code which will represent RoI.
+
+```py
+# Crop the image based on the region of interest
+x, y, width, height = roi
+undistorted_image = undistorted_image[y:y+height, x:x+width]
+# Save the undistorted image
+cv.imwrite(config.UNDISTORTED_IMAGE_PATH, undistorted_image)
+```
+
+![Undistorted With ROI][image2]
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
