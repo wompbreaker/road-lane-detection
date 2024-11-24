@@ -4,11 +4,12 @@ import logging
 from logging.handlers import RotatingFileHandler 
 
 import cv2 as cv
-import numpy as np
+
+from processing import *
 
 @contextlib.contextmanager
 def setup_logging():
-    log = logging.getLogger(__name__)
+    log = logging.getLogger()
 
     try:
         log.setLevel(logging.INFO)
@@ -28,6 +29,10 @@ def setup_logging():
         )
         handler.setFormatter(fmt)
         log.addHandler(handler)
+        # Log to console
+        console = logging.StreamHandler()
+        console.setFormatter(fmt)
+        log.addHandler(console)
 
         yield
     finally:
@@ -36,23 +41,7 @@ def setup_logging():
             handler.close()
             log.removeHandler(handler)
 
-def camera_calibration(*args, **kwargs):
-    """Perform camera calibration using chessboard images.
-
-    Compute the camera calibration matrix and distortion coefficients given 
-    a set of chessboard images. Images are located in the 'camera_cal' 
-    directory.
-    """
-    ...
-
-def undistort_image(*args, **kwargs):
-    """Undistort an image using camera calibration parameters.
-
-    Apply camera calibration parameters to undistort an image.
-    """
-    ...
-
-def threshold_image(*args, **kwargs):
+def threshold_image():
     """Threshold an image to identify lane lines.
 
     Apply a combination of color and gradient thresholds to identify lane 
@@ -101,7 +90,14 @@ def main():
     log = logging.getLogger(__name__)
     log.info(f"Python version: {sys.version}")
     log.info(f"OpenCV version: {cv.__version__}")
-    cv.waitKey(0)
+    try:
+        camera_calibration()
+    except ValueError as e:
+        log.error(e)
+    try:
+        undistort_image()
+    except FileNotFoundError as e:
+        log.error(e)
 
 if __name__ == '__main__':
     with setup_logging():
