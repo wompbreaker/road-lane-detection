@@ -6,7 +6,7 @@ import numpy as np
 
 import config
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("Undistort")
 
 def undistort_image() -> None:
     """Undistort an image using camera calibration parameters.
@@ -16,6 +16,7 @@ def undistort_image() -> None:
     Raises:
         FileNotFoundError: If the camera calibration data is not found.
     """
+    log.info('Undistorting the image...')
     if not os.path.exists(config.CALIBRATION_DATA_PATH):
         raise FileNotFoundError("Camera calibration data not found.")
     # Load the calibration data
