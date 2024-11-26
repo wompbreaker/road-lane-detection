@@ -2,6 +2,7 @@ import contextlib
 import sys
 import logging
 from logging.handlers import RotatingFileHandler 
+import argparse
 
 import cv2 as cv
 
@@ -9,6 +10,12 @@ from processing import *
 
 @contextlib.contextmanager
 def setup_logging():
+    """Set up logging configuration.
+
+    Set up logging configuration for the application. The log file is named
+    'output.log' and is saved in the current working directory. The log level
+    is set to INFO and the log file is rotated when it reaches 5 MB.
+    """
     log = logging.getLogger()
 
     try:
@@ -40,14 +47,6 @@ def setup_logging():
         for handler in handlers:
             handler.close()
             log.removeHandler(handler)
-
-def threshold_image():
-    """Threshold an image to identify lane lines.
-
-    Apply a combination of color and gradient thresholds to identify lane 
-    lines in an image.
-    """
-    ...
 
 def perspective_transform(*args, **kwargs):
     """Apply a perspective transform to an image.
@@ -86,18 +85,45 @@ def output_data(*args, **kwargs):
     """
     ...
 
+
+def parse_args():
+    """Parse command-line arguments.
+    
+    Returns
+    -------
+        argparse.Namespace: The parsed arguments.
+    """
+    parser = argparse.ArgumentParser(description="Road Lane Detection")
+    parser.add_argument(
+        "-c",
+        "--calibrate", 
+        action="store_true", 
+        help="Perform camera calibration"
+    )
+    parser.add_argument(
+        "--clear",
+        action="store_true",
+        help="Clear the calibration data"
+    )
+    return parser.parse_args()
+    
+
 def main():
     log = logging.getLogger(__name__)
     log.info(f"Python version: {sys.version}")
     log.info(f"OpenCV version: {cv.__version__}")
+    args = parse_args()
+    check_calibration: bool = args.calibrate
+    clear_calibration: bool = args.clear
     try:
-        camera_calibration()
+        camera_calibration(check_calibration, clear_calibration)
     except ValueError as e:
         log.error(e)
     try:
         undistort_image()
     except FileNotFoundError as e:
         log.error(e)
+    # threshold_image()
 
 if __name__ == '__main__':
     with setup_logging():
