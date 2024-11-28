@@ -8,7 +8,7 @@ import config
 
 log = logging.getLogger("Undistort")
 
-def undistort_image() -> None:
+def undistort_image(image_name: str = config.BASE_NAME) -> None:
     """Undistort an image using camera calibration parameters.
 
     Apply camera calibration parameters to undistort an image.
@@ -25,7 +25,7 @@ def undistort_image() -> None:
         dist_coeffs = data['dist']
 
     # Read the image to be undistorted
-    img = cv.imread(config.IMAGE_TO_UNDISTORT)
+    img = cv.imread(config.IMAGE_TO_UNDISTORT.format(name=image_name))
     height, width = img.shape[:2]
 
     # Get the optimal camera matrix for better undistortion
@@ -42,5 +42,11 @@ def undistort_image() -> None:
     undistorted_image = undistorted_image[y:y+height, x:x+width]
 
     # Save the undistorted image
-    cv.imwrite(config.UNDISTORTED_IMAGE_PATH, undistorted_image)
-    log.info(f"Undistorted image saved to {config.UNDISTORTED_IMAGE_PATH}.")
+    cv.imwrite(
+        config.UNDISTORTED_IMAGE_PATH.format(name=image_name), 
+        undistorted_image
+    )
+    log.info(
+        f"Undistorted image saved to "
+        f"{config.UNDISTORTED_IMAGE_PATH.format(name=image_name)}"
+    )
