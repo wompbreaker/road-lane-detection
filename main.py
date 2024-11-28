@@ -126,6 +126,30 @@ def parse_args():
         help="The name of the image to process"
     )
     return parser.parse_args()
+
+def validate_base_name(name: str) -> bool:
+    """Validate the base name of the image.
+
+    Check if the base name of the image is valid.
+
+    Parameters
+    ----------
+    name : str
+        The base name of the image to process.
+
+    Raises
+    ------
+    ValueError
+        If the base name of the image is invalid.
+    FileNotFoundError
+        If the image file is not found.
+    """
+    if not name or name == '':
+        raise ValueError("Base name of the image is invalid.")
+    # Check if the image file exists
+    if not os.path.exists(f'test_images/{name}.jpg'):
+        raise FileNotFoundError(f"Image file not found: {name}.jpg")
+    return True
     
 
 def main():
@@ -136,6 +160,16 @@ def main():
     check_calibration: bool = args.calibrate
     clear: bool = args.clear
     image_name = args.name if args.name else config.BASE_NAME
+    try:
+        if validate_base_name(image_name):
+            log.info(f"Processing image: {image_name}.jpg")
+    except (ValueError, FileNotFoundError) as e:
+        log.error(e)
+        return
+    
+    clear_output_data(clear)
+    if validate_base_name(image_name):
+        log.info(f"Processing image: {image_name}.jpg")
     clear_output_data(clear)
     try:
         camera_calibration(check_calibration, clear)
