@@ -1,20 +1,49 @@
 import os
 import argparse
+import time
+import logging
+from typing import Callable
 
 from utils.config import *
 from processing import *
 
-def clear_output_data(clear: bool = False) -> None:
+log = logging.getLogger("Misc")
+
+# decorator for calculating the time taken to execute a function
+def timer(func: Callable) -> Callable:
+    """Decorator to calculate the time taken to execute a function.
+
+    Parameters
+    ----------
+    func : function
+        The function to be executed
+
+    Returns
+    -------
+    function
+        The wrapper function
+    """
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        elapsed_time = (end - start) * 1000
+        log = logging.getLogger(
+            func.__module__.lower().replace('processing.', '').capitalize()
+        )
+        log.info(f"{func.__name__} execution time: {elapsed_time:.2f} ms")
+        return result
+    return wrapper
+
+def clear_output_data() -> None:
     """Clear the output data.
 
     Clear the output data from the previous run.
     """
-    if clear:
-        # Clear the output images from the outputs directory and all the subdirectories
-        for root, _, files in os.walk('outputs'):
-            for file in files:
-                if file.endswith('.jpg'):
-                    os.remove(os.path.join(root, file))
+    for root, _, files in os.walk('outputs'):
+        for file in files:
+            if file.endswith('.jpg'):
+                os.remove(os.path.join(root, file))
     
 
 def parse_args() -> argparse.Namespace:
