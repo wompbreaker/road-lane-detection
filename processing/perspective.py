@@ -3,6 +3,8 @@ import logging
 import cv2 as cv
 import numpy as np
 
+import utils
+
 log = logging.getLogger("Perspective")
 
 def _get_homography_matrix(src: np.ndarray, dst: np.ndarray) -> cv.typing.MatLike:
@@ -60,7 +62,7 @@ def _warp_image(
     
     return cv.warpPerspective(image, h, (image.shape[1], image.shape[0]))
 
-def draw_points(
+def _draw_points(
     image: cv.typing.MatLike, 
     points: np.ndarray, 
     color: tuple = (0, 255, 0)
@@ -91,6 +93,7 @@ def draw_points(
 
     return image
 
+@utils.timer
 def perspective_transform(binary_image: cv.typing.MatLike) -> cv.typing.MatLike:
     """Apply a perspective transform to an image.
     
@@ -131,7 +134,7 @@ def perspective_transform(binary_image: cv.typing.MatLike) -> cv.typing.MatLike:
         [src[3][0] + line_dst_offset, image_height]
     ]
 
-    # image = draw_points(image.copy(), src)
+    # image = _draw_points(image.copy(), src)
     image = _warp_image(image, src, dst)
     log.info("Perspective transform applied.")
 
