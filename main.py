@@ -55,7 +55,8 @@ def main():
     
     if validate_base_name(image_name):
         log.info(f"Processing image: {image_name}.jpg")
-    clear_output_data(clear)
+    if clear:
+        clear_output_data()
     try:
         camera_calibration(calibrate)
     except ValueError as e:
