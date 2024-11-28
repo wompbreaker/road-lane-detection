@@ -3,14 +3,17 @@ import logging
 import cv2 as cv
 import numpy as np	
 
+import utils
+
 log = logging.getLogger("Thresholding")
 
 __all__ = ['threshold_image']
 
+@utils.timer
 def __remove_noise(image: cv.typing.MatLike) -> cv.typing.MatLike:
     """Remove noise from an image.
 
-    Apply fastNlMeansDenoisingColored to remove noise from an image. This
+    Apply GaussianBlur to remove noise from an image. This
     function is used to remove noise from the image before applying color
     thresholding.
 
@@ -25,8 +28,9 @@ def __remove_noise(image: cv.typing.MatLike) -> cv.typing.MatLike:
         The image with noise removed.
     """
     log.info("Removing noise from the image")
-    return cv.fastNlMeansDenoisingColored(image, 6, 6, 7, 21)
+    return cv.GaussianBlur(image, (5, 5), 0)
 
+@utils.timer
 def _filter_yellow_white(image: cv.typing.MatLike) -> cv.typing.MatLike:
     """Filter yellow and white colors from an image.
     
@@ -62,16 +66,12 @@ def _filter_yellow_white(image: cv.typing.MatLike) -> cv.typing.MatLike:
     # Combine the masks
     mask = cv.bitwise_or(yellow_mask, white_mask)
 
-    # Apply morphological operations to the mask to remove noise and fill in gaps
-    kernel = np.ones((2, 2), np.uint8)
-    mask = cv.dilate(mask, kernel, iterations=1)  # Fill in gaps 
-    mask = cv.erode(mask, kernel, iterations=1)  # Remove noise
-
     # Apply the mask to the image
     result = cv.bitwise_and(image, image, mask=mask)
 
     return result
 
+@utils.timer
 def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
     """Ignore all colors except yellow and white.
     
@@ -127,6 +127,7 @@ def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
     return combined_binary
 
+@utils.timer
 def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
     """Mask the region of interest in the image.
     
@@ -171,7 +172,7 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
 
     return masked_image
 
-
+@utils.timer
 def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
     """Threshold an image to identify lane lines.
 
