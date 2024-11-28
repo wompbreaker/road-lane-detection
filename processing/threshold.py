@@ -3,8 +3,6 @@ import logging
 import cv2 as cv
 import numpy as np	
 
-import config
-
 log = logging.getLogger("Thresholding")
 
 __all__ = ['threshold_image']
@@ -125,6 +123,7 @@ def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
     combined_mask = (s_binary == 1) | (sobel_binary == 1)
     combined_binary[combined_mask] = 1
     combined_binary = np.uint8(255 * combined_binary / np.max(combined_binary))
+    log.info("Finished applying color thresholding")
 
     return combined_binary
 
@@ -168,11 +167,12 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
     cv.fillPoly(mask_image, mask_polyg, ignore_mask_color)
     # Apply the mask to the thresholded image
     masked_image = cv.bitwise_and(binary_image, mask_image)
+    log.info("Masking the region of interest complete")
 
     return masked_image
 
 
-def threshold_image(image_name: str = config.BASE_NAME) -> None:
+def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
     """Threshold an image to identify lane lines.
 
     Apply a combination of color and gradient thresholds to identify lane 
@@ -181,24 +181,21 @@ def threshold_image(image_name: str = config.BASE_NAME) -> None:
 
     Parameters
     ----------
-    image_name : str
-        The name of the image to threshold, by default config.BASE_NAME
+    undistorted_image : cv.typing.MatLike
+        The undistorted image that needs to be thresholded.
+
+    Returns
+    -------
+    cv.typing.MatLike
+        A binary image after applying color and gradient thresholds.
     """
     log.info("Thresholding the image")
-    # Load the image
-    image = cv.imread(config.UNDISTORTED_IMAGE_PATH.format(name=image_name))
     # Apply color thresholding
-    filtered_image = _filter_yellow_white(image)
+    filtered_image = _filter_yellow_white(undistorted_image)
     # Apply color and gradient thresholding
     binary_image = _color_threshold(filtered_image)
     # Mask the region of interest
     masked_image = _mask_image(binary_image)
-    # Save the thresholded image
-    cv.imwrite(
-        config.THRESHOLDED_IMAGE_PATH.format(name=image_name), 
-        masked_image
-    )
-    log.info(
-        f"Thresholded image saved to "
-        f"{config.THRESHOLDED_IMAGE_PATH.format(name=image_name)}"
-    )
+    log.info("Thresholding complete")
+
+    return masked_image
