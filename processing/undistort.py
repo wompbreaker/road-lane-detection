@@ -4,11 +4,12 @@ import logging
 import cv2 as cv
 import numpy as np
 
-from utils.config import *
+import utils
 
 log = logging.getLogger("Undistort")
 
-def undistort_image(image_name: str = BASE_NAME) -> cv.typing.MatLike:
+@utils.timer
+def undistort_image(image_name: str = utils.BASE_NAME) -> cv.typing.MatLike:
     """Undistort an image using camera calibration parameters.
 
     Apply camera calibration parameters to undistort an image. The camera
@@ -29,15 +30,15 @@ def undistort_image(image_name: str = BASE_NAME) -> cv.typing.MatLike:
         FileNotFoundError: If the camera calibration data is not found.
     """
     log.info('Undistorting the image...')
-    if not os.path.exists(CALIBRATION_DATA_PATH):
+    if not os.path.exists(utils.CALIBRATION_DATA_PATH):
         raise FileNotFoundError("Camera calibration data not found.")
     # Load the calibration data
-    with np.load(CALIBRATION_DATA_PATH) as data:
+    with np.load(utils.CALIBRATION_DATA_PATH) as data:
         matrix = data['mtx']
         dist_coeffs = data['dist']
 
     # Read the image to be undistorted
-    img = cv.imread(IMAGE_TO_UNDISTORT.format(name=image_name))
+    img = cv.imread(utils.IMAGE_TO_UNDISTORT.format(name=image_name))
     height, width = img.shape[:2]
 
     # Get the optimal camera matrix for better undistortion
