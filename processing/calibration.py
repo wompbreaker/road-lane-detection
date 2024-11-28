@@ -5,29 +5,27 @@ import os
 import cv2 as cv
 import numpy as np
 
-import config
+from utils.config import *
 
 log = logging.getLogger("Calibration")
 
-def camera_calibration(check_file: bool = False, clear: bool = False) -> None:
+def camera_calibration(calibrate: bool = False) -> None:
     """Perform camera calibration using chessboard images.
 
     Compute the camera calibration matrix and distortion coefficients given 
     a set of chessboard images. Calibration images path is located in the 
     config module.
     """
-    if clear:
-        try:
-            _clear_calibration_data()
-        except:
-            pass
-    if not check_file and os.path.exists(config.CALIBRATION_DATA_PATH):
+    if calibrate:
+        _clear_calibration_data()
+
+    if not calibrate and os.path.exists(CALIBRATION_DATA_PATH):
         log.info("Camera calibration data already exists.")
         return
     log.info("Calibrating the camera...")
-    rows = config.ROWS
-    cols = config.COLS
-    images_path = config.CALIBRATION_IMAGES
+    rows = ROWS
+    cols = COLS
+    images_path = CALIBRATION_IMAGES
 
     # Arrays to store object points and image points from all the images
     objpoints = []  # 3d points in real world space
@@ -64,13 +62,13 @@ def camera_calibration(check_file: bool = False, clear: bool = False) -> None:
     if ret > 1.5:
         raise ValueError(f"Calibration error too high: {ret}")
     # Save the calibration data
-    np.savez(config.CALIBRATION_DATA_PATH, mtx=mtx, dist=dist)
-    log.info(f"Camera calibration successful: {config.CALIBRATION_DATA_PATH}")
+    np.savez(CALIBRATION_DATA_PATH, mtx=mtx, dist=dist)
+    log.info(f"Camera calibration successful. Output file: {CALIBRATION_DATA_PATH}")
 
 def _clear_calibration_data() -> None:
     """Clear the camera calibration data."""
     try:
-        os.remove(config.CALIBRATION_DATA_PATH)
+        os.remove(CALIBRATION_DATA_PATH)
         log.info("Removed camera calibration data")
     except FileNotFoundError:
         log.error("Camera calibration data not found.")
