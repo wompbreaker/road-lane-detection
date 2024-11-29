@@ -113,7 +113,7 @@ def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
     sobel_binary[sobel_mask] = 1
 
     # Apply thresholds to the S channel
-    min_s = 170
+    min_s = 100
     max_s = 255
     s_mask = (s_channel > min_s) & (s_channel <= max_s)
     s_binary[s_mask] = 1
@@ -149,10 +149,10 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
     # Define the polygon for the mask
     mask_polyg = np.array(
         [[
-            (offset, binary_image.shape[0]), 
-            (binary_image.shape[1] / 2.5, binary_image.shape[0] / 1.65), 
-            (binary_image.shape[1] / 1.8, binary_image.shape[0] / 1.65), 
-            (binary_image.shape[1], binary_image.shape[0])
+            (offset, binary_image.shape[0]),  # Bottom left
+            (binary_image.shape[1] / 2.5, binary_image.shape[0] / 1.65),  # Top left
+            (binary_image.shape[1] / 1.8, binary_image.shape[0] / 1.65),  # Top right
+            (binary_image.shape[1], binary_image.shape[0])  # Bottom right
         ]], 
         dtype=np.int32
     )
@@ -170,9 +170,9 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
     log.info("Masking the region of interest complete")
     
     # Turn the masked image lines from blue to white
-    white_masked_image = cv.inRange(masked_image, 1, 255)
+    # white_masked_image = cv.inRange(masked_image, 1, 255)
     
-    return white_masked_image
+    return masked_image
 
 @utils.timer
 def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
@@ -197,10 +197,10 @@ def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
     filtered_image = _filter_yellow_white(undistorted_image)
     
     # Apply color and gradient thresholding
-    # binary_image = _color_threshold(filtered_image)
+    binary_image = _color_threshold(filtered_image)
     
     # Mask the region of interest
-    masked_image = _mask_image(filtered_image)
+    masked_image = _mask_image(binary_image)
     log.info("Thresholding complete")
 
     return masked_image
