@@ -39,13 +39,13 @@ Change directory to the root of the project directory with
 After this run `python -m venv .venv` to create a virtual environment. 
 
 #### 1.3 Install dependencies
-Activating the environment. First, change directories to `Scripts`
+Activating the environment: First, run
 
-`cd .venv/Scripts` 
+`. .venv/Scripts/activate` 
 
-and then run `activate`. 
+to activate the virtual environment.
 
-To install dependecies, navigate back to the root with `cd ../..` and then run
+To install dependecies, run
 
 `pip install -r requirements.txt`
 
@@ -53,7 +53,7 @@ To install dependecies, navigate back to the root with `cd ../..` and then run
 
 #### The camera calibration is designed to perform camera calibration using a set of chessboard images. The code for this step is located in "./processing/calibration.py".  
 
-This process computes the camera calibration matrix and distortion coefficients, which are needed for correcting lens distortion in images. The number of rows and columns of the chessboard, as well as the path to the calibration images, are retrieved from a configuration file. Object points, representing 3D points in real-world space, are prepared using a NumPy array and a meshgrid. Two lists, `objpoints` and `imgpoints`, are initialized to store 3D object points and 2D image points from all images. The function iterates over each image file, reads the image with `imread`, converts it to grayscale with `cvtColor`, and finds the chessboard corners with `findChessboardCorners`. If corners are found, their positions are refined using `cornerSubPix` and added to the lists. The camera is then calibrated using these points with `calibrateCamera`, and if the calibration error exceeds a threshold, an error is logged and a ValueError is raised. The output of this function is a `.npz` file which contains calibration data that will be used in the next step.
+This process computes the camera calibration matrix and distortion coefficients, which are needed for correcting lens distortion in images. The number of rows and columns of the chessboard, as well as the path to the calibration images, are retrieved from a configuration file. Object points, representing 3D points in real-world space, are prepared using a NumPy array and a meshgrid. Two lists, `objpoints` and `imgpoints`, are initialized to store 3D object points and 2D image points from all images. The function iterates over each image file, reads the image with `imread`, converts it to grayscale with `cvtColor`, and finds the chessboard corners with `findChessboardCorners`. If corners are found, their positions are refined using `cornerSubPix` and added to the lists. The camera is then calibrated using these points with `calibrateCamera`, and if the calibration error exceeds a threshold, an error is logged and a `ValueError` is raised. The output of this function is a `.npz` file which contains calibration data that will be used in the next step.
 
 ### 3. Undistorting
 
@@ -62,7 +62,7 @@ This process computes the camera calibration matrix and distortion coefficients,
 To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
 ![Original][image0]
 
-It begins by checking if the calibration data file exists at the specified path `(config.CALIBRATION_DATA_PATH)`. The calibration data, including the camera matrix (`matrix`) and distortion coefficients (`dist_coeffs`), is loaded using `np.load`. The function then reads (`imread`) the image to be undistorted from the path specified in `config.IMAGE_TO_UNDISTORT` and retrieves its dimensions. To achieve better undistortion, it computes an optimal new camera matrix and the region of interest (ROI) using `getOptimalNewCameraMatrix`. Before taking the Region of Interest (`roi`), the picture looks like this:
+It begins by checking if the calibration data file exists at the specified path `(utils.CALIBRATION_DATA_PATH)`. The calibration data, including the camera matrix (`matrix`) and distortion coefficients (`dist_coeffs`), is loaded using `np.load`. The function then reads (`imread`) the image to be undistorted from the path specified in `utils.IMAGE_TO_UNDISTORT` and retrieves its dimensions. To achieve better undistortion, it computes an optimal new camera matrix and the region of interest (ROI) using `getOptimalNewCameraMatrix`. Before taking the Region of Interest (`roi`), the picture looks like this:
 
 ![Undistorted Without ROI][image1]
 
@@ -73,9 +73,9 @@ To avoid having these black corners, it adds 2 lines of code which will represen
 x, y, width, height = roi
 undistorted_image = undistorted_image[y:y+height, x:x+width]
 # Save the undistorted image
-cv.imwrite(config.UNDISTORTED_IMAGE_PATH, undistorted_image)
+cv.imwrite(utils.UNDISTORTED_IMAGE_PATH, undistorted_image)
 ```
-The final output of step 2 is an undistorted image with its Region of Interest:
+The final output of step 2 is returned as an undistorted image with its Region of Interest:
 
 ![Undistorted With ROI][image2]
 
