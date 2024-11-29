@@ -18,12 +18,9 @@ The goals / steps of this project are the following:
 [image0]: ./markdown_images/original.jpg "Original"
 [image1]: ./markdown_images/undistorted_no_roi.jpg "Undistorted Without ROI"
 [image2]: ./markdown_images/undistorted_with_roi.jpg "Undistorted With ROI"
-[image2]: ./test_images/test1.jpg "Road Transformed"
-[image3]: ./examples/binary_combo_example.jpg "Binary Example"
-[image4]: ./examples/warped_straight_lines.jpg "Warp Example"
-[image5]: ./examples/color_fit_lines.jpg "Fit Visual"
-[image6]: ./examples/example_output.jpg "Output"
-[video1]: ./project_video.mp4 "Video"
+[image3]: ./markdown_images/threshold_yellow_white.jpg "Filtered yellow and white lines"
+[image4]: ./markdown_images/threshold_color.jpg "Sobel X transform"
+[image5]: ./markdown_images/threshold_masked.jpg "Threshold masked"
 
 ---
 
@@ -45,7 +42,7 @@ Activating the environment: First, run
 
 to activate the virtual environment.
 
-To install dependecies, run
+To install dependencies, run
 
 `pip install -r requirements.txt`
 
@@ -80,14 +77,88 @@ The final output of step 2 is returned as an undistorted image with its Region o
 ![Undistorted With ROI][image2]
 
 
+### 4. Thresholding
 
-#### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
+#### The `threshold_image` function applies a combination of color and gradient threshold to turn an undistorted image into a binary version of it. The code for this step is located in "./processing/threshold.py". 
 
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+Processing for this function is divided into 3 steps. First step is filtering the image with `_filter_yellow_white` to only show yellow and white lines (these lines are the only ones relevant on the road). Before masking the original image, I applied Gaussian blur to remove any noise for easier and more accurate results. First I convert the image from BGR colorspace to HLS. 
+```py
+image = __remove_noise(image)  # Apply noise removal to the image
+hls = cv.cvtColor(image, cv.COLOR_BGR2HLS)
+```
+After that I defined thresholds for yellow and white colors and created masks.
+```py
+# Define the yellow color range
+min_yellow = np.array([25 / 360 * 255, 100, 150])
+max_yellow = np.array([50 / 360 * 255, 255, 255])
 
-![alt text][image3]
+# Define the white color range
+min_white = np.array([0, 220, 0])
+max_white = np.array([150, 255, 255])
 
+# Create masks for the yellow and white colors
+yellow_mask = cv.inRange(hls, min_yellow, max_yellow)
+white_mask = cv.inRange(hls, min_white, max_white)
+```
+After creating masks, I applied the bitwise OR to combine the masks and then bitwise AND to apply the mask to the original image.
+```py
+# Combine the masks
+mask = cv.bitwise_or(yellow_mask, white_mask)
 
+# Apply the mask to the image
+result = cv.bitwise_and(image, image, mask=mask)
+
+return result
+```
+The result after this step looks something like this:
+
+![Filtered yellow and white lines][image3]
+
+After filtering out only relevant colors, the image is then turned to HLS colorspace so we can separate lightness `(L)` and saturation `(S)` channels.  Sobel gradient transform on X axis is applied to the image. This is because we're only interested in vertical lines.
+
+```py
+sobel_x = cv.Sobel(l_channel, cv.CV_64F, 1, 0, ksize=9)
+scaled_sobel = np.uint8(255 * np.abs(sobel_x))
+```
+The `scaled_sobel` variable contains the absolute values of these gradients, scaled to an 8-bit range (0-255) for easier processing and visualization. The `sobel_mask` variable holds binary values for gradients that are between values 20 and 255. Gradients below 20 are considered too weak to be significant edges. 
+
+```py
+sobel_mask = (scaled_sobel > min_magnitude) & (scaled_sobel <= max_magnitude)
+sobel_binary[sobel_mask] = 1
+```
+This code sets the corresponding pixels in the `sobel_binary` image to 1 (white) where the mask is `True`. This effectively highlights the edges detected by the Sobel operator withing the specified magnitude range.
+
+Similiar thing is done with the saturation channel - a binary mask is made to hold significant values for pixels with saturation values withing range of 100 - 255. Masks are then combined and applied to the original binary image. 
+```py
+s_mask = (s_channel > min_s) & (s_channel <= max_s)
+s_binary[s_mask] = 1
+```
+The output of this step is:
+
+![Sobel X transform][image4]
+
+To adjust this image and turn it into a binary image, showing only Region of Interest with white lines, the `_mask_image` function is applied. It creates a polygon that represents the region of interest and fills it with white color. 
+```py
+mask_polyg = np.array(
+    [[
+        (offset, binary_image.shape[0]),  # Bottom left
+        (binary_image.shape[1] / 2.5, binary_image.shape[0] / 1.65),  # Top left
+        (binary_image.shape[1] / 1.8, binary_image.shape[0] / 1.65),  # Top right
+        (binary_image.shape[1], binary_image.shape[0])  # Bottom right
+    ]], 
+    dtype=np.int32
+)
+```
+This function then applies the mask to the image that was filtered with `_color_threshold` function.
+```py
+# Fill the mask with the polygon
+mask_image = cv.fillPoly(mask_image, mask_polyg, ignore_mask_color)
+# Apply the mask to the thresholded image
+masked_image = cv.bitwise_and(binary_image, mask_image)
+```
+And the final output of this processing module is:
+
+![Color threshold][image5]
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
