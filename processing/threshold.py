@@ -52,12 +52,12 @@ def _filter_yellow_white(image: cv.typing.MatLike) -> cv.typing.MatLike:
     hls = cv.cvtColor(image, cv.COLOR_BGR2HLS)
 
     # Define the yellow color range
-    min_yellow = np.array([25 / 360 * 255, 120, 120])
-    max_yellow = np.array([70 / 360 * 255, 255, 255])
+    min_yellow = np.array([25 / 360 * 255, 100, 150])
+    max_yellow = np.array([50 / 360 * 255, 255, 255])
 
     # Define the white color range
-    min_white = np.array([0, 200, 0])
-    max_white = np.array([255, 255, 255])
+    min_white = np.array([0, 220, 0])
+    max_white = np.array([150, 255, 255])
 
     # Create masks for the yellow and white colors
     yellow_mask = cv.inRange(hls, min_yellow, max_yellow)
@@ -103,9 +103,8 @@ def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
     # Apply Sobel x to the L channel
     log.info("Applying Sobel x to the L channel")
-    sobel_x = cv.Sobel(l_channel, cv.CV_64F, 1, 0, ksize=5)
-    abs_sobel = np.abs(sobel_x)
-    scaled_sobel = np.uint8(255 * abs_sobel / np.max(abs_sobel))
+    sobel_x = cv.Sobel(l_channel, cv.CV_64F, 1, 0, ksize=9)
+    scaled_sobel = np.uint8(255 * np.abs(sobel_x))
 
     # Apply thresholds to the Sobel x gradient
     min_magnitude = 20
@@ -114,7 +113,7 @@ def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
     sobel_binary[sobel_mask] = 1
 
     # Apply thresholds to the S channel
-    min_s = 190
+    min_s = 170
     max_s = 255
     s_mask = (s_channel > min_s) & (s_channel <= max_s)
     s_binary[s_mask] = 1
@@ -155,7 +154,7 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
             (binary_image.shape[1] / 1.8, binary_image.shape[0] / 1.65), 
             (binary_image.shape[1], binary_image.shape[0])
         ]], 
-        np.int32
+        dtype=np.int32
     )
     
     # Create a mask image
@@ -165,12 +164,15 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
     ignore_mask_color = 255
 
     # Fill the mask with the polygon
-    cv.fillPoly(mask_image, mask_polyg, ignore_mask_color)
+    mask_image = cv.fillPoly(mask_image, mask_polyg, ignore_mask_color)
     # Apply the mask to the thresholded image
     masked_image = cv.bitwise_and(binary_image, mask_image)
     log.info("Masking the region of interest complete")
-
-    return masked_image
+    
+    # Turn the masked image lines from blue to white
+    white_masked_image = cv.inRange(masked_image, 1, 255)
+    
+    return white_masked_image
 
 @utils.timer
 def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
@@ -193,10 +195,12 @@ def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
     log.info("Thresholding the image")
     # Apply color thresholding
     filtered_image = _filter_yellow_white(undistorted_image)
+    
     # Apply color and gradient thresholding
-    binary_image = _color_threshold(filtered_image)
+    # binary_image = _color_threshold(filtered_image)
+    
     # Mask the region of interest
-    masked_image = _mask_image(binary_image)
+    masked_image = _mask_image(filtered_image)
     log.info("Thresholding complete")
 
     return masked_image
