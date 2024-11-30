@@ -39,6 +39,8 @@ def camera_calibration(calibrate: bool = False) -> None:
 
     for fname in glob.glob(images_path):
         img = cv.imread(fname)
+        if image.shape[0] != 720 or image.shape[1] != 1280:
+            image = cv.resize(image, (1280, 720))
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
         # Find the chessboard corners
