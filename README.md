@@ -126,7 +126,7 @@ The `scaled_sobel` variable contains the absolute values of these gradients, sca
 sobel_mask = (scaled_sobel > min_magnitude) & (scaled_sobel <= max_magnitude)
 sobel_binary[sobel_mask] = 1
 ```
-This code sets the corresponding pixels in the `sobel_binary` image to 1 (white) where the mask is `True`. This effectively highlights the edges detected by the Sobel operator withing the specified magnitude range.
+This code sets the corresponding pixels in the `sobel_binary` image to 1 (white) where the mask is `True`. This effectively highlights the edges detected by the Sobel operator within the specified magnitude range.
 
 Similiar thing is done with the saturation channel - a binary mask is made to hold significant values for pixels with saturation values withing range of 100 - 255. Masks are then combined and applied to the original binary image. 
 ```py
@@ -160,64 +160,33 @@ And the final output of this processing module is:
 
 ![Color threshold][image5]
 
-#### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
+### 5. Perspective transform
+#### The `perspective_transform` function applies a "bird's eye view" perspective transform to an image using the source and destination points.
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+The source points are the region of interest of the image and the destination points are the key points of a warped image.
 
-```python
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
-```
+TODO: Add your text here!!!
 
-This resulted in the following source and destination points:
+#### 6. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-| Source        | Destination   | 
-|:-------------:|:-------------:| 
-| 585, 460      | 320, 0        | 
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
+TODO: Add your text here!!!
 
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
+#### 7. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-![alt text][image4]
+TODO: Add your text here!!!
 
-#### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
+#### 8. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
-
-![alt text][image5]
-
-#### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
-
-I did this in lines # through # in my code in `my_other_file.py`
-
-#### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
-
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
-
-![alt text][image6]
-
----
+TODO: Add your text here!!!
 
 ### Pipeline (video)
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-Here's a [link to my video result](./project_video.mp4)
-
----
+TODO: Add your text here!!!
 
 ### Discussion
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+TODO: Add your text here!!!
