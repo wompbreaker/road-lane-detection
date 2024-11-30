@@ -7,6 +7,8 @@ __all__ = [
     "clear_output_data",
     "parse_args",
     "validate_base_name",
+    "compare_images",
+    "draw_points",
     "ROWS",
     "COLS",
     "CALIBRATION_IMAGES",

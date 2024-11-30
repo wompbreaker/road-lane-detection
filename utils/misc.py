@@ -4,6 +4,10 @@ import time
 import logging
 from typing import Callable
 
+import matplotlib.pyplot as plt
+import cv2 as cv
+import numpy as np
+
 from utils.config import *
 from processing import *
 
@@ -44,6 +48,76 @@ def clear_output_data() -> None:
         for file in files:
             if file.endswith('.jpg'):
                 os.remove(os.path.join(root, file))
+
+def compare_images(
+    image1: cv.typing.MatLike, 
+    image2: cv.typing.MatLike, 
+    image1_name: str ="Image 1", 
+    image2_name: str ="Image 2"
+) -> None:
+    """Compare two images side by side.
+
+    Parameters
+    ----------
+    image1: cv.typing.MatLike
+        The first image to compare.
+    image2: cv.typing.MatLike
+        The second image to compare.
+    image1_name: str
+        The description of the first image.
+    image2_name: str
+        The description of the second image.
+    """
+
+    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
+    f.tight_layout()
+    ax1.imshow(image1)
+    ax1.set_title(image1_name, fontsize=50)
+    ax2.imshow(image2)
+    ax2.set_title(image2_name, fontsize=50)
+    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
+    plt.show()
+
+
+def draw_points(
+    image: cv.typing.MatLike, 
+    points: np.ndarray, 
+    color: tuple = (0, 255, 0)
+) -> cv.typing.MatLike:
+    """Draw points on an image.
+
+    Draw points on an image using the specified color. The points are drawn
+    as circles with a radius of 8 pixels.
+
+    Parameters
+    ----------
+    image : cv.typing.MatLike
+        The image to draw the points on.
+
+    points : np.ndarray
+        The points to draw on the image.
+
+    color : tuple, optional
+        The color of the points, by default (0, 255, 0).
+
+    Returns
+    -------
+    cv.typing.MatLike
+        The image with the points drawn on it.
+    """
+    # for point in points:
+    #     cv.circle(image, (int(point[0]), int(point[1])), 8, color, -1)
+    top_right, bottom_right, bottom_left, top_left = points
+    red = (255, 0, 0)
+    green = (0, 255, 0)
+    blue = (0, 0, 255)
+    yellow = (0, 255, 255)
+    cv.circle(image, (int(top_right[0]), int(top_right[1])), 8, red, -1)
+    cv.circle(image, (int(bottom_right[0]), int(bottom_right[1])), 8, green, -1)
+    cv.circle(image, (int(bottom_left[0]), int(bottom_left[1])), 8, blue, -1)
+    cv.circle(image, (int(top_left[0]), int(top_left[1])), 8, yellow, -1)
+
+    return image
     
 
 def parse_args() -> argparse.Namespace:
