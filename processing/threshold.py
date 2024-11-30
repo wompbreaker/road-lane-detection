@@ -104,7 +104,7 @@ def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
     # Apply Sobel x to the L channel
     log.info("Applying Sobel x to the L channel")
     sobel_x = cv.Sobel(l_channel, cv.CV_64F, 1, 0, ksize=9)
-    scaled_sobel = np.uint8(255 * np.abs(sobel_x))
+    scaled_sobel = np.uint8(255 * np.abs(sobel_x)/np.max(np.abs(sobel_x)))
 
     # Apply thresholds to the Sobel x gradient
     min_magnitude = 20
@@ -147,13 +147,15 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
     """
     offset = 100
     # Define the polygon for the mask
+    height = binary_image.shape[0]
+    width = binary_image.shape[1]
     mask_polyg = np.array(
         [[
-            (offset, binary_image.shape[0]),  # Bottom left
-            (binary_image.shape[1] / 2.5, binary_image.shape[0] / 1.65),  # Top left
-            (binary_image.shape[1] / 1.8, binary_image.shape[0] / 1.65),  # Top right
-            (binary_image.shape[1], binary_image.shape[0])  # Bottom right
-        ]], 
+            (offset, height),  # Bottom left
+            (width // 2 - 45, height // 2 + 60),  # Top left
+            (width // 2 + 45, height // 2 + 60),  # Top right
+            (width - offset, height)  # Bottom right
+        ]],
         dtype=np.int32
     )
     
@@ -161,7 +163,7 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
     mask_image = np.zeros_like(binary_image)
 
     # Fill the mask with the ignore mask color
-    ignore_mask_color = 255
+    ignore_mask_color = (255, 255, 255)
 
     # Fill the mask with the polygon
     mask_image = cv.fillPoly(mask_image, mask_polyg, ignore_mask_color)
@@ -173,6 +175,28 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
     # white_masked_image = cv.inRange(masked_image, 1, 255)
     
     return masked_image
+
+@utils.timer
+def _fill_lines(image: cv.typing.MatLike) -> cv.typing.MatLike:
+    """Fill the lane lines in the image.
+
+    By dilating and eroding the image, the function fills the lane lines in the
+    image. This helps in identifying the lane lines more accurately.
+
+    Parameters
+    ----------
+    image : cv.typing.MatLike
+        The image to fill the lane lines in.
+
+    Returns
+    -------
+    cv.typing.MatLike
+        The image with the lane lines filled.
+    """
+    kernel = np.ones((5, 5), np.uint8)
+    image = cv.dilate(image, kernel, iterations=1)
+    image = cv.erode(image, kernel, iterations=1)
+    return image
 
 @utils.timer
 def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
@@ -198,9 +222,13 @@ def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
     
     # Apply color and gradient thresholding
     binary_image = _color_threshold(filtered_image)
-    
+
+    # Fill the lane lines in the image
+    binary_image = _fill_lines(binary_image)
+
     # Mask the region of interest
     masked_image = _mask_image(binary_image)
+
     log.info("Thresholding complete")
 
     return masked_image
