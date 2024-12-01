@@ -14,7 +14,7 @@ with np.load(utils.CALIBRATION_DATA_PATH) as data:
     dist_coeffs = data['dist']
     
 @utils.timer
-def undistort_image(image_name: str = utils.BASE_NAME) -> cv.typing.MatLike:
+def undistort_image(image: cv.typing.MatLike) -> cv.typing.MatLike:
     """Undistort an image using camera calibration parameters.
 
     Apply camera calibration parameters to undistort an image. The camera
@@ -23,8 +23,8 @@ def undistort_image(image_name: str = utils.BASE_NAME) -> cv.typing.MatLike:
 
     Parameters
     -----------
-    image_name : str
-        The base name of the image to undistort.
+    image : MatLike
+        The image to undistort.
 
     Returns
     --------
@@ -38,12 +38,10 @@ def undistort_image(image_name: str = utils.BASE_NAME) -> cv.typing.MatLike:
     if not os.path.exists(utils.CALIBRATION_DATA_PATH):
         raise FileNotFoundError("Camera calibration data not found.")
 
-    # Read the image to be undistorted
-    image = cv.imread(utils.IMAGE_TO_UNDISTORT.format(name=image_name))
     height = image.shape[0]
     width = image.shape[1]
     if height != 720 or width != 1280:
-        image = cv.resize(image, (1280, 720))
+        image = cv.resize(image, (1280, 720), interpolation=cv.INTER_LINEAR)
 
     # Get the optimal camera matrix for better undistortion
     # ROI: Region of Interest
