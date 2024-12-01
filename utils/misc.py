@@ -1,8 +1,9 @@
+from __future__ import annotations
 import os
 import argparse
 import time
 import logging
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import matplotlib.pyplot as plt
 import cv2 as cv
@@ -10,6 +11,9 @@ import numpy as np
 
 from utils.config import *
 from processing import *
+
+if TYPE_CHECKING:
+    from cv2.typing import MatLike
 
 log = logging.getLogger("Misc")
 
@@ -50,8 +54,8 @@ def clear_output_data() -> None:
                 os.remove(os.path.join(root, file))
 
 def compare_images(
-    image1: cv.typing.MatLike, 
-    image2: cv.typing.MatLike, 
+    image1: MatLike, 
+    image2: MatLike, 
     image1_name: str ="Image 1", 
     image2_name: str ="Image 2"
 ) -> None:
@@ -59,9 +63,9 @@ def compare_images(
 
     Parameters
     ----------
-    image1: cv.typing.MatLike
+    image1: MatLike
         The first image to compare.
-    image2: cv.typing.MatLike
+    image2: MatLike
         The second image to compare.
     image1_name: str
         The description of the first image.
@@ -78,12 +82,11 @@ def compare_images(
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
     plt.show()
 
-
 def draw_points(
-    image: cv.typing.MatLike, 
+    image: MatLike, 
     points: np.ndarray, 
     color: tuple = (0, 255, 0)
-) -> cv.typing.MatLike:
+) -> MatLike:
     """Draw points on an image.
 
     Draw points on an image using the specified color. The points are drawn
@@ -91,7 +94,7 @@ def draw_points(
 
     Parameters
     ----------
-    image : cv.typing.MatLike
+    image : MatLike
         The image to draw the points on.
 
     points : np.ndarray
@@ -102,11 +105,9 @@ def draw_points(
 
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         The image with the points drawn on it.
     """
-    # for point in points:
-    #     cv.circle(image, (int(point[0]), int(point[1])), 8, color, -1)
     top_right, bottom_right, bottom_left, top_left = points
     red = (255, 0, 0)
     green = (0, 255, 0)
@@ -140,11 +141,16 @@ def parse_args() -> argparse.Namespace:
         help="Clear output images"
     )
     parser.add_argument(
-        "-n",
-        "--name",
+        "-i",
+        "--image",
         type=str,
-        default=BASE_NAME,
         help="The name of the image to process"
+    )
+    parser.add_argument(
+        "-v",
+        "--video",
+        type=str,
+        help="The name of the video to process"
     )
     parser.add_argument(
         "-s",
@@ -154,26 +160,41 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
-def validate_base_name(name: str) -> bool:
-    """Validate the base name of the image.
+def validate_base_name(image_name: str | None, video_name: str | None) -> bool:
+    """Validate the base name of the image or video.
 
-    Check if the base name of the image is valid.
+    Validate the base name of the image or video to ensure that the file exists.
 
     Parameters
     ----------
-    name : str
-        The base name of the image to process.
+    image_name : str
+        The name of the image.
+    video_name : str
+        The name of the video.
+
+    Returns
+    -------
+    bool
+        True if the file exists, False otherwise.
 
     Raises
     ------
     ValueError
-        If the base name of the image is invalid.
+        If both image and video names are provided.
     FileNotFoundError
-        If the image file is not found.
+        If the image or video file is not found.
     """
-    if not name or name == '':
-        raise ValueError("Base name of the image is invalid.")
-    # Check if the image file exists
-    if not os.path.exists(f'test_images/{name}.jpg'):
-        raise FileNotFoundError(f"Image file not found: {name}.jpg")
-    return True
+    if image_name and video_name:
+        raise ValueError("Both image and video names cannot be provided")
+    
+    if image_name:
+        if not os.path.isfile(f"test_images/{image_name}.jpg"):
+            raise FileNotFoundError(f"Image file not found: {image_name}")
+        return True
+    
+    if video_name:
+        if not os.path.isfile(f"test_videos/{video_name}.mp4"):
+            raise FileNotFoundError(f"Video file not found: {video_name}")
+        return True
+    
+    return False
