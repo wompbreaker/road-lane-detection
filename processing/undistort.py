@@ -21,7 +21,7 @@ with np.load(utils.CALIBRATION_DATA_PATH) as data:
 
 
 @utils.timer
-def undistort_image(image: MatLike) -> MatLike:
+def undistort_image(image: 'MatLike') -> 'MatLike':
     """Undistort an image using camera calibration parameters.
 
     Apply camera calibration parameters to undistort an image. The camera

@@ -56,8 +56,8 @@ def clear_output_data() -> None:
                 os.remove(os.path.join(root, file))
 
 def compare_images(
-    image1: MatLike, 
-    image2: MatLike, 
+    image1: 'MatLike', 
+    image2: 'MatLike', 
     image1_name: str ="Image 1", 
     image2_name: str ="Image 2"
 ) -> None:
@@ -85,10 +85,10 @@ def compare_images(
     plt.show()
 
 def draw_points(
-    image: MatLike, 
+    image: 'MatLike', 
     points: np.ndarray, 
     color: tuple = (0, 255, 0)
-) -> MatLike:
+) -> 'MatLike':
     """Draw points on an image.
 
     Draw points on an image using the specified color. The points are drawn

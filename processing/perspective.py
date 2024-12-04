@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("Perspective")
 
 
-def _get_homography_matrix(src: np.ndarray, dst: np.ndarray) -> MatLike:
+def _get_homography_matrix(src: 'MatLike', dst: 'MatLike') -> 'MatLike':
     """Get the homography matrix.
 
     Get the homography matrix using the source and destination points. The
@@ -22,9 +22,9 @@ def _get_homography_matrix(src: np.ndarray, dst: np.ndarray) -> MatLike:
 
     Parameters
     ----------
-    src : np.ndarray
+    src : MatLike
         The source points to calculate the homography matrix.
-    dst : np.ndarray
+    dst : MatLike
         The destination points to calculate the homography matrix.
 
     Returns
@@ -40,10 +40,10 @@ def _get_homography_matrix(src: np.ndarray, dst: np.ndarray) -> MatLike:
 
 
 def _warp_image(
-    image: MatLike,
-    src: np.ndarray,
-    dst: np.ndarray
-) -> MatLike:
+    image: 'MatLike',
+    src: 'MatLike',
+    dst: 'MatLike'
+) -> 'MatLike':
     """Warp an image to a bird's-eye view.
 
     Warp an image to a bird's-eye view using the source and destination points.
@@ -52,18 +52,18 @@ def _warp_image(
 
     Parameters
     ----------
-    image : np.ndarray
+    image : MatLike
         The image to warp.
 
-    src : np.ndarray
+    src : MatLike
         The source points to warp the image.
 
-    dst : np.ndarray
+    dst : MatLike
         The destination points to warp the image.
 
     Returns
     -------
-    MatLike
+    'MatLike'
         A bird's-eye view perspective of the image.
     """
     h = _get_homography_matrix(src, dst)
@@ -73,7 +73,7 @@ def _warp_image(
 
 
 @utils.timer
-def perspective_transform(binary_image: MatLike) -> MatLike:
+def perspective_transform(binary_image: 'MatLike') -> 'MatLike':
     """Apply a perspective transform to an image.
 
     Apply a perspective transform to an image using the source and destination
@@ -89,7 +89,7 @@ def perspective_transform(binary_image: MatLike) -> MatLike:
 
     Returns
     -------
-    MatLike
+    'MatLike'
         A bird's-eye view perspective of the binary image.
     """
     log.info("Applying perspective transform...")

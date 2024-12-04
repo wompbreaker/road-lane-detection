@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 @utils.timer
-def __remove_noise(image: MatLike) -> MatLike:
+def __remove_noise(image: 'MatLike') -> 'MatLike':
     """Remove noise from an image.
 
     Apply GaussianBlur to remove noise from an image. This
@@ -39,7 +39,7 @@ def __remove_noise(image: MatLike) -> MatLike:
 
 
 @utils.timer
-def _filter_yellow_white(image: MatLike) -> MatLike:
+def _filter_yellow_white(image: 'MatLike') -> 'MatLike':
     """Filter yellow and white colors from an image.
 
     Apply color thresholding to the image to filter yellow and white colors.
@@ -81,7 +81,7 @@ def _filter_yellow_white(image: MatLike) -> MatLike:
 
 
 @utils.timer
-def _color_threshold(image: MatLike) -> MatLike:
+def _color_threshold(image: 'MatLike') -> 'MatLike':
     """Ignore all colors except yellow and white.
 
     Apply color thresholding to the image to ignore all colors except yellow
@@ -138,7 +138,7 @@ def _color_threshold(image: MatLike) -> MatLike:
 
 
 @utils.timer
-def _mask_image(binary_image: np.uint8) -> MatLike:
+def _mask_image(binary_image: np.uint8) -> 'MatLike':
     """Mask the region of interest in the image.
 
     Apply a mask to the image to focus on the region of interest. The function
@@ -189,7 +189,7 @@ def _mask_image(binary_image: np.uint8) -> MatLike:
 
 
 @utils.timer
-def _fill_lines(image: MatLike) -> MatLike:
+def _fill_lines(image: 'MatLike') -> 'MatLike':
     """Fill the lane lines in the image.
 
     By dilating and eroding the image, the function fills the lane lines in the
@@ -212,7 +212,7 @@ def _fill_lines(image: MatLike) -> MatLike:
 
 
 @utils.timer
-def threshold_image(undistorted_image: MatLike) -> MatLike:
+def threshold_image(undistorted_image: 'MatLike') -> 'MatLike':
     """Threshold an image to identify lane lines.
 
     Apply a combination of color and gradient thresholds to identify lane
