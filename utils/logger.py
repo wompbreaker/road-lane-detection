@@ -7,13 +7,14 @@ from logging.handlers import RotatingFileHandler
 
 @contextlib.contextmanager
 def setup_logging():
-    """Set up logging configuration."""
+    """Set up logging configuration with two handlers."""
     log = logging.getLogger()
+    log.setLevel(logging.DEBUG)
 
     try:
-        log.setLevel(logging.INFO)
+        # Log errors to file
         max_bytes = 5 * 1024 * 1024  # 5 MB
-        handler = RotatingFileHandler(
+        file_handler = RotatingFileHandler(
             filename='output.log',
             encoding='utf-8',
             mode='w',
@@ -21,17 +22,24 @@ def setup_logging():
             backupCount=3
         )
         dt_fmt = "%d-%m-%Y %H:%M:%S"
-        fmt = logging.Formatter(
+        file_fmt = logging.Formatter(
             '[{asctime}] [{levelname:<7}] {name}: {message}',
             dt_fmt,
             style='{'
         )
-        handler.setFormatter(fmt)
-        log.addHandler(handler)
-        # Log to console
-        console = logging.StreamHandler()
-        console.setFormatter(fmt)
-        log.addHandler(console)
+        file_handler.setFormatter(file_fmt)
+        file_handler.setLevel(logging.ERROR)
+        log.addHandler(file_handler)
+
+        # Log informations to console
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        file_fmt = logging.Formatter(
+            '{message}',
+            style='{'
+        )
+        console_handler.setFormatter(file_fmt)
+        log.addHandler(console_handler)
 
         yield
     finally:
