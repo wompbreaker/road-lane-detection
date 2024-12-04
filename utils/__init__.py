@@ -17,7 +17,6 @@ __all__ = [
     "CALIBRATION_DATA_PATH",
     "BASE_IMAGE_NAME",
     "BASE_VIDEO_NAME",
-    "STORE_IMAGES",
     "IMAGE_TO_UNDISTORT",
     "UNDISTORTED_IMAGE_PATH",
     "THRESHOLDED_IMAGE_PATH",
@@ -25,4 +24,6 @@ __all__ = [
     "PROJECT_VIDEO_PATH",
     "MARGIN",
     "MINIMUM_PIXELS",
+    "SRC_POINTS",
+    "DST_POINTS",
 ]
