@@ -22,3 +22,7 @@ PERSPECTIVE_IMAGE_PATH = 'outputs/warped/{name}_perspective.jpg'
 
 # Project video path
 PROJECT_VIDEO_PATH = 'test_videos/{name}.mp4'
+
+# Line finding parameters
+MARGIN = 100
+MINIMUM_PIXELS = 50
