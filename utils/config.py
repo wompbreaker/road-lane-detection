@@ -6,7 +6,6 @@ CALIBRATION_DATA_PATH = 'outputs/calibration_data.npz'
 
 BASE_IMAGE_NAME = 'test1'
 BASE_VIDEO_NAME = 'project_video01'
-STORE_IMAGES = False
 
 # Undistorted image output path
 IMAGE_TO_UNDISTORT = 'test_images/{name}.jpg'
@@ -19,6 +18,30 @@ THRESHOLDED_IMAGE_PATH = 'outputs/thresholded/{name}_thresholded.jpg'
 
 # Output path for the perspective transformed image
 PERSPECTIVE_IMAGE_PATH = 'outputs/warped/{name}_perspective.jpg'
+
+# Source points
+_SRC_TOP_RIGHT = (731, 477)
+_SRC_BOTTOM_RIGHT = (1056, 689)
+_SRC_BOTTOM_LEFT = (260, 689)
+_SRC_TOP_LEFT = (556, 477)
+SRC_POINTS = [
+    _SRC_TOP_RIGHT, 
+    _SRC_BOTTOM_RIGHT, 
+    _SRC_BOTTOM_LEFT, 
+    _SRC_TOP_LEFT
+]
+
+# Destination points
+_DST_TOP_RIGHT = (900, 0)
+_DST_BOTTOM_RIGHT = (900, 689)
+_DST_BOTTOM_LEFT = (250, 689)
+_DST_TOP_LEFT = (250, 0)
+DST_POINTS = [
+    _DST_TOP_RIGHT, 
+    _DST_BOTTOM_RIGHT, 
+    _DST_BOTTOM_LEFT, 
+    _DST_TOP_LEFT
+]
 
 # Project video path
 PROJECT_VIDEO_PATH = 'test_videos/{name}.mp4'
