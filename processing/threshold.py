@@ -1,6 +1,7 @@
 """This module contains functions to threshold an image."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import cv2 as cv
 import numpy as np
@@ -11,9 +12,12 @@ log = logging.getLogger("Thresholding")
 
 __all__ = ['threshold_image']
 
+if TYPE_CHECKING:
+    from cv2.typing import MatLike
+
 
 @utils.timer
-def __remove_noise(image: cv.typing.MatLike) -> cv.typing.MatLike:
+def __remove_noise(image: MatLike) -> MatLike:
     """Remove noise from an image.
 
     Apply GaussianBlur to remove noise from an image. This
@@ -22,12 +26,12 @@ def __remove_noise(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
     Parameters
     ----------
-    image : cv.typing.MatLike
+    image : MatLike
         The image to remove noise from.
 
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         The image with noise removed.
     """
     log.info("Removing noise from the image")
@@ -35,7 +39,7 @@ def __remove_noise(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
 
 @utils.timer
-def _filter_yellow_white(image: cv.typing.MatLike) -> cv.typing.MatLike:
+def _filter_yellow_white(image: MatLike) -> MatLike:
     """Filter yellow and white colors from an image.
 
     Apply color thresholding to the image to filter yellow and white colors.
@@ -44,12 +48,12 @@ def _filter_yellow_white(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
     Parameters
     ----------
-    image : cv.typing.MatLike
+    image : MatLike
         The image to filter yellow and white colors from.
 
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         The image after filtering yellow and white colors.
     """
     image = __remove_noise(image)  # Apply noise removal to the image
@@ -77,7 +81,7 @@ def _filter_yellow_white(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
 
 @utils.timer
-def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
+def _color_threshold(image: MatLike) -> MatLike:
     """Ignore all colors except yellow and white.
 
     Apply color thresholding to the image to ignore all colors except yellow
@@ -87,12 +91,12 @@ def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
     Parameters
     ----------
-    image : cv.typing.MatLike
+    image : MatLike
         The image to apply color thresholding to.
 
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         The binary image after applying color thresholding.
     """
     # Convert the image to HLS color space
@@ -134,7 +138,7 @@ def _color_threshold(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
 
 @utils.timer
-def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
+def _mask_image(binary_image: np.uint8) -> MatLike:
     """Mask the region of interest in the image.
 
     Apply a mask to the image to focus on the region of interest. The function
@@ -149,7 +153,7 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
 
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         The masked image that focuses on the region of interest.
     """
     offset = 100
@@ -185,7 +189,7 @@ def _mask_image(binary_image: np.uint8) -> cv.typing.MatLike:
 
 
 @utils.timer
-def _fill_lines(image: cv.typing.MatLike) -> cv.typing.MatLike:
+def _fill_lines(image: MatLike) -> MatLike:
     """Fill the lane lines in the image.
 
     By dilating and eroding the image, the function fills the lane lines in the
@@ -193,12 +197,12 @@ def _fill_lines(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
     Parameters
     ----------
-    image : cv.typing.MatLike
+    image : MatLike
         The image to fill the lane lines in.
 
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         The image with the lane lines filled.
     """
     kernel = np.ones((5, 5), np.uint8)
@@ -208,7 +212,7 @@ def _fill_lines(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
 
 @utils.timer
-def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
+def threshold_image(undistorted_image: MatLike) -> MatLike:
     """Threshold an image to identify lane lines.
 
     Apply a combination of color and gradient thresholds to identify lane
@@ -217,12 +221,12 @@ def threshold_image(undistorted_image: cv.typing.MatLike) -> cv.typing.MatLike:
 
     Parameters
     ----------
-    undistorted_image : cv.typing.MatLike
+    undistorted_image : MatLike
         The undistorted image that needs to be thresholded.
 
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         A binary image after applying color and gradient thresholds.
     """
     log.info("Thresholding the image")

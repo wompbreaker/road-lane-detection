@@ -2,6 +2,7 @@
 
 import os
 import logging
+from typing import TYPE_CHECKING
 
 import cv2 as cv
 import numpy as np
@@ -10,6 +11,9 @@ import utils
 
 log = logging.getLogger("Undistort")
 
+if TYPE_CHECKING:
+    from cv2.typing import MatLike
+    
 # Load the calibration data
 with np.load(utils.CALIBRATION_DATA_PATH) as data:
     matrix = data['mtx']
@@ -17,7 +21,7 @@ with np.load(utils.CALIBRATION_DATA_PATH) as data:
 
 
 @utils.timer
-def undistort_image(image: cv.typing.MatLike) -> cv.typing.MatLike:
+def undistort_image(image: MatLike) -> MatLike:
     """Undistort an image using camera calibration parameters.
 
     Apply camera calibration parameters to undistort an image. The camera
@@ -31,7 +35,7 @@ def undistort_image(image: cv.typing.MatLike) -> cv.typing.MatLike:
 
     Returns
     --------
-    cv.typing.MatLike
+    MatLike
         The undistorted image.
 
     Raises:
