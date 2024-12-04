@@ -1,3 +1,5 @@
+"""This is an entry point for the utils package."""
+
 from .logger import setup_logging
 from .misc import *
 from .config import *

@@ -1,3 +1,5 @@
+"""This is an entry point for the processing module."""
+
 from .calibration import camera_calibration
 from .undistort import undistort_image
 from .threshold import threshold_image
@@ -7,7 +9,6 @@ from .line_finding import (
     slide_window,
     draw_lines,
     fit_from_lines,
-    
 )
 
 __all__ = [

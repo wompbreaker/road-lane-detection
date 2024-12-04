@@ -1,5 +1,5 @@
 # Camera calibration parameters
-ROWS = 6  
+ROWS = 6
 COLS = 9
 CALIBRATION_IMAGES = 'camera_cal/calibration*.jpg'
 CALIBRATION_DATA_PATH = 'outputs/calibration_data.npz'

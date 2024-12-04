@@ -1,6 +1,9 @@
+"""This is a utility module for setting up logging."""
+
 import contextlib
 import logging
-from logging.handlers import RotatingFileHandler 
+from logging.handlers import RotatingFileHandler
+
 
 @contextlib.contextmanager
 def setup_logging():
@@ -19,7 +22,7 @@ def setup_logging():
         )
         dt_fmt = "%d-%m-%Y %H:%M:%S"
         fmt = logging.Formatter(
-            '[{asctime}] [{levelname:<7}] {name}: {message}', 
+            '[{asctime}] [{levelname:<7}] {name}: {message}',
             dt_fmt,
             style='{'
         )
@@ -36,4 +39,3 @@ def setup_logging():
         for handler in handlers:
             handler.close()
             log.removeHandler(handler)
-            
