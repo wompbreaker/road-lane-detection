@@ -1,41 +1,49 @@
+"""This module contains functions to turn an image to birds-eye view."""
+
 import logging
+from typing import TYPE_CHECKING
 
 import cv2 as cv
 import numpy as np
 
 import utils
 
+if TYPE_CHECKING:
+    from cv2.typing import MatLike
+
 log = logging.getLogger("Perspective")
 
-def _get_homography_matrix(src: np.ndarray, dst: np.ndarray) -> cv.typing.MatLike:
+
+def _get_homography_matrix(src: np.ndarray, dst: np.ndarray) -> MatLike:
     """Get the homography matrix.
-    
+
     Get the homography matrix using the source and destination points. The
     homography matrix is used to warp the image to a bird's-eye view.
-    
+
     Parameters
     ----------
     src : np.ndarray
         The source points to calculate the homography matrix.
     dst : np.ndarray
         The destination points to calculate the homography matrix.
-        
+
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         The homography matrix.
     """
     src = np.float32([src])
     dst = np.float32([dst])
-    
+
     h, _ = cv.findHomography(src, dst, cv.RANSAC)
     return h
 
+
 def _warp_image(
-    image: cv.typing.MatLike, 
-    src: np.ndarray, 
+    image: MatLike,
+    src: np.ndarray,
     dst: np.ndarray
-) -> cv.typing.MatLike:
+) -> MatLike:
     """Warp an image to a bird's-eye view.
 
     Warp an image to a bird's-eye view using the source and destination points.
@@ -55,7 +63,7 @@ def _warp_image(
 
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         A bird's-eye view perspective of the image.
     """
     h = _get_homography_matrix(src, dst)
@@ -63,10 +71,11 @@ def _warp_image(
     width = image.shape[1]
     return cv.warpPerspective(image, h, (width, height))
 
+
 @utils.timer
-def perspective_transform(binary_image: cv.typing.MatLike) -> cv.typing.MatLike:
+def perspective_transform(binary_image: MatLike) -> MatLike:
     """Apply a perspective transform to an image.
-    
+
     Apply a perspective transform to an image using the source and destination
     points. The source points are the region of interest (ROI) of the image
     and the destination points are the warped image. The source points are
@@ -75,12 +84,12 @@ def perspective_transform(binary_image: cv.typing.MatLike) -> cv.typing.MatLike:
 
     Parameters
     ----------
-    binary_image : cv.typing.MatLike
+    binary_image : MatLike
         A thresholded binary image to apply the perspective transform.
 
     Returns
     -------
-    cv.typing.MatLike
+    MatLike
         A bird's-eye view perspective of the binary image.
     """
     log.info("Applying perspective transform...")
