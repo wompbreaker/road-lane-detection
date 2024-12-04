@@ -1,3 +1,5 @@
+"""Module for undistorting images using camera calibration parameters."""
+
 import os
 import logging
 
@@ -12,7 +14,8 @@ log = logging.getLogger("Undistort")
 with np.load(utils.CALIBRATION_DATA_PATH) as data:
     matrix = data['mtx']
     dist_coeffs = data['dist']
-    
+
+
 @utils.timer
 def undistort_image(image: cv.typing.MatLike) -> cv.typing.MatLike:
     """Undistort an image using camera calibration parameters.
