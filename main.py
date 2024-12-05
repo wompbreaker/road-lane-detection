@@ -7,6 +7,7 @@ image or video processing based on the provided arguments.
 
 import sys
 import logging
+from typing import TYPE_CHECKING
 
 import cv2 as cv
 import numpy as np
@@ -14,6 +15,8 @@ import numpy as np
 import processing
 import utils
 
+if TYPE_CHECKING:
+    from cv2.typing import MatLike
 
 def main():
     """Main function for image processing.
@@ -29,6 +32,7 @@ def main():
     clear: bool = args.clear
     image_name = args.image
     video_name = args.video
+    utils.DEBUG = args.debug
     store_images: bool = args.store if args.store else False
     try:
         if utils.validate_base_name(image_name, video_name):
@@ -39,41 +43,31 @@ def main():
 
     if utils.validate_base_name(image_name, video_name):
         log.info(f"Processing: {image_name if image_name else video_name}")
+
     if clear:
         utils.clear_output_data()
-    try:
-        processing.camera_calibration(calibrate)
-    except ValueError as e:
-        log.error(e)
 
-    display_video(video_name)
-    exit(0)
-    image = cv.imread(utils.IMAGE_TO_UNDISTORT.format(name=image_name))
-    try:
-        # Undistort the image to remove lens distortion
-        undistorted_image = processing.undistort_image(image)
-    except FileNotFoundError as e:
-        log.error(e)
+    if calibrate:
+        try:
+            processing.camera_calibration(calibrate)
+        except ValueError as e:
+            log.error(e)
+
+    if video_name:
+        display_video(video_name)
         return
-    
-    # Threshold the image to highlight lane lines
-    thresholded_image = processing.threshold_image(undistorted_image)
-    
-    # Apply a perspective transform to the image
-    warped_image = processing.perspective_transform(thresholded_image)
 
-    # Find lane lines using a sliding window approach
-    left_fit, right_fit = processing.slide_window(warped_image)
 
-    # Fill in the lane lines
-    left_fit, right_fit = processing.previous_window(warped_image, left_fit, right_fit)
+    image = cv.imread(utils.IMAGE_TO_UNDISTORT.format(name=image_name))
+    if image is None:
+        log.error(f"Image not found: {image_name}")
+        return
+    result = processing_pipeline(image)
+    if result is None:
+        log.error(f"Unable to process image: {image_name}")
+        return
 
-    ploty, left_fitx, right_fitx = processing.create_ploty(warped_image, left_fit, right_fit)
-
-    # Draw the lane lines on the image
-    processing.draw_lines(undistorted_image, warped_image, ploty, left_fitx, right_fitx, False)
-
-    # Store the images after processing
+    undistorted_image, thresholded_image, warped_image, output = result
     if store_images:
         cv.imwrite(
             utils.UNDISTORTED_IMAGE_PATH.format(name=image_name),
@@ -87,6 +81,88 @@ def main():
             utils.PERSPECTIVE_IMAGE_PATH.format(name=image_name),
             warped_image
         )
+        cv.imwrite(
+            utils.FINAL_IMAGE_PATH.format(name=image_name),
+            output
+        )
+
+
+def processing_pipeline(image: 'MatLike') -> 'MatLike':
+    """Process an image using the lane detection pipeline.
+
+    Parameters
+    ----------
+    image : MatLike
+        The image to process.
+
+    Returns
+    -------
+    MatLike
+        The processed image.
+    """
+    log = logging.getLogger(__name__.replace('__', ''))
+    try:
+        # Undistort the image to remove lens distortion
+        undistorted_image = processing.undistort_image(image)
+    except FileNotFoundError as e:
+        log.error(e)
+        return
+    
+    # Threshold the image to highlight lane lines
+    thresholded_image = processing.threshold_image(undistorted_image)
+    
+    # Apply a perspective transform to the image
+    warped_image = processing.perspective_transform(thresholded_image)
+
+    try:
+        # Fill in the lane lines
+        left_fit, right_fit = processing.previous_window(
+            warped_image,
+            left_fit,
+            right_fit
+        )
+
+        mov_avg_left = np.append(mov_avg_left, np.array([left_fit]), axis=0)
+        mov_avg_right = np.append(mov_avg_right, np.array([right_fit]), axis=0)
+
+    except:
+        # skip the frame if there are not enough pixels to fit the line
+        try:
+            left_fit, right_fit = processing.slide_window(warped_image)
+            mov_avg_left = np.array([left_fit])
+            mov_avg_right = np.array([right_fit])
+        except:
+            return None
+        
+    left_fit = np.array([
+        np.mean(mov_avg_left[::-1][:, 0][0:10]),
+        np.mean(mov_avg_left[::-1][:, 1][0:10]),
+        np.mean(mov_avg_left[::-1][:, 2][0:10])
+    ])
+    right_fit = np.array([
+        np.mean(mov_avg_right[::-1][:, 0][0:10]),
+        np.mean(mov_avg_right[::-1][:, 1][0:10]),
+        np.mean(mov_avg_right[::-1][:, 2][0:10])
+    ])
+
+    # Generate the plot points
+    ploty, left_fitx, right_fitx = processing.create_ploty(
+        warped_image,
+        left_fit,
+        right_fit
+    )
+
+    # Draw the lane lines on the image
+    output = processing.draw_lines(
+        undistorted_image,
+        warped_image,
+        ploty,
+        left_fitx,
+        right_fitx,
+        False
+    )
+
+    return undistorted_image, thresholded_image, warped_image, output
 
 
 def display_video(video_name: str):
@@ -127,28 +203,9 @@ def display_video(video_name: str):
                 interpolation=cv.INTER_LINEAR
             )
 
-        undistorted_image = processing.undistort_image(frame)
-    
-        # Threshold the image to highlight lane lines
-        thresholded_image = processing.threshold_image(undistorted_image)
-        
-        # Apply a perspective transform to the image
-        warped_image = processing.perspective_transform(thresholded_image)
-
-        # Find lane lines using a sliding window approach
-        try:
-            left_fit, right_fit = processing.slide_window(warped_image)
-        except ValueError as e:
-            print(e)
+        output = processing_pipeline(frame)
+        if output is None:
             continue
-
-        # Fill in the lane lines
-        left_fit, right_fit = processing.previous_window(warped_image, left_fit, right_fit)
-
-        ploty, left_fitx, right_fitx = processing.create_ploty(warped_image, left_fit, right_fit)
-
-        # Draw the lane lines on the image
-        output = processing.draw_lines(undistorted_image, warped_image, ploty, left_fitx, right_fitx, False)
         out.write(output)
 
         cv.imshow('Video', output)
