@@ -183,7 +183,14 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Store the images after processing"
     )
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true",
+        help="Enable debug mode"
+    )
     return parser.parse_args()
+
 
 def validate_base_name(image_name: str | None, video_name: str | None) -> bool:
     """Validate the base name of the image or video.
