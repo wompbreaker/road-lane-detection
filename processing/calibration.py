@@ -22,6 +22,10 @@ def camera_calibration(calibrate: bool = False) -> None:
     """
     if utils.DEBUG:
         log.info("Calibrating the camera...")
+    
+    if not os.path.exists(utils.CALIBRATION_DATA_PATH):
+        utils.validate_output_directories()
+    
     if calibrate:
         _clear_calibration_data()
 
