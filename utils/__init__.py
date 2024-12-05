@@ -5,6 +5,7 @@ from .misc import *
 from .config import *
 
 __all__ = [
+    "DEBUG",
     "setup_logging",
     "clear_output_data",
     "parse_args",

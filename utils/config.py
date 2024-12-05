@@ -1,3 +1,7 @@
+"""Configuration file for the project"""
+
+DEBUG = False
+
 # Camera calibration parameters
 ROWS = 6
 COLS = 9
