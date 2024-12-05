@@ -32,6 +32,8 @@ def _get_homography_matrix(src: 'MatLike', dst: 'MatLike') -> 'MatLike':
     MatLike
         The homography matrix.
     """
+    if utils.DEBUG:
+        log.info("Calculating homography matrix...")
     src = np.float32([src])
     dst = np.float32([dst])
 
@@ -51,6 +53,8 @@ def get_inverse_perspective_matrix() -> 'MatLike':
     MatLike
         The inverse perspective matrix.
     """
+    if utils.DEBUG:
+        log.info("Calculating inverse perspective matrix...")
     src = utils.SRC_POINTS
     dst = utils.DST_POINTS
 
@@ -83,6 +87,9 @@ def _warp_image(
     'MatLike'
         A bird's-eye view perspective of the image.
     """
+    if utils.DEBUG:
+        log.info("Warping image...")
+        
     # Source points
     src = utils.SRC_POINTS
 
@@ -92,10 +99,13 @@ def _warp_image(
     h = _get_homography_matrix(src, dst)
     height = image.shape[0]
     width = image.shape[1]
+    
+    if utils.DEBUG:
+        log.info("Warping image complete.")
     return cv.warpPerspective(image, h, (width, height))
 
 
-@utils.timer
+@utils.timer(name="warp")
 def perspective_transform(binary_image: 'MatLike') -> 'MatLike':
     """Apply a perspective transform to an image.
 
@@ -115,10 +125,12 @@ def perspective_transform(binary_image: 'MatLike') -> 'MatLike':
     'MatLike'
         A bird's-eye view perspective of the binary image.
     """
-    log.info("Applying perspective transform...")
+    if utils.DEBUG:
+        log.info("Applying perspective transform...")
     image = cv.cvtColor(binary_image, cv.COLOR_BGR2RGB)
 
     image = _warp_image(image)
-    log.info("Perspective transform applied.")
+    if utils.DEBUG:
+        log.info("Perspective transform applied.")
 
     return cv.cvtColor(image, cv.COLOR_RGB2BGR)
