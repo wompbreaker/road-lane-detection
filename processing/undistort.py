@@ -15,9 +15,18 @@ if TYPE_CHECKING:
     from cv2.typing import MatLike
     
 # Load the calibration data
-with np.load(utils.CALIBRATION_DATA_PATH) as data:
-    matrix = data['mtx']
-    dist_coeffs = data['dist']
+try:
+    with np.load(utils.CALIBRATION_DATA_PATH) as data:
+        matrix = data['mtx']
+        dist_coeffs = data['dist']
+except FileNotFoundError:
+    log.error("Camera calibration data not found.")
+    from .calibration import camera_calibration
+    try:
+        utils.validate_output_directories()
+        camera_calibration(calibrate=True)
+    except ValueError as e:
+        log.error(e)
 
 
 @utils.timer(name="undistort", start=True)
