@@ -5,7 +5,7 @@
 examples/
 
 # Ignore the log files
-*.log
+*.log*
 
 # Ignore __pycache__ directories
 __pycache__/
