@@ -5,6 +5,7 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 
 import utils
+from .perspective import get_inverse_perspective_matrix
 
 if TYPE_CHECKING:
     from cv2.typing import MatLike
@@ -53,7 +54,10 @@ def histogram_peaks(histogram: 'MatLike') -> Tuple[int, int]:
     return left_peak, right_peak
 
 
-def slide_window(binary_warped: 'MatLike', plot: bool = False) -> Tuple['MatLike', 'MatLike']:
+def slide_window(
+    binary_warped: 'MatLike',
+    plot: bool = False
+) -> Tuple['MatLike', 'MatLike']:
     """Get the left and right lane lines using sliding window.
 
     The sliding window is used to find the lane lines in the image. The image
@@ -152,14 +156,24 @@ def slide_window(binary_warped: 'MatLike', plot: bool = False) -> Tuple['MatLike
     right_lane_inds = np.concatenate(right_lane_inds)
 
     # Extract left and right line pixel positions
-    leftx = nonzerox[left_lane_inds]
-    lefty = nonzeroy[left_lane_inds] 
-    rightx = nonzerox[right_lane_inds]
-    righty = nonzeroy[right_lane_inds] 
+    left_x = nonzerox[left_lane_inds]
+    left_y = nonzeroy[left_lane_inds] 
+    right_x = nonzerox[right_lane_inds]
+    right_y = nonzeroy[right_lane_inds] 
+
+    
+    # Check if there are enough points to fit a polynomial
+    if (
+        len(left_x) < 3 
+        or len(left_y) < 3 
+        or len(right_x) < 3 
+        or len(right_y) < 3
+    ):
+        raise ValueError("Not enough points to fit a polynomial")
 
     # Fit a second order polynomial to each lane
-    left_fit = np.polyfit(lefty, leftx, 2)
-    right_fit = np.polyfit(righty, rightx, 2)
+    left_fit = np.polyfit(left_y, left_x, 2)
+    right_fit = np.polyfit(right_y, right_x, 2)
 
     if plot is True:
         # Generate x and y values for plotting
@@ -182,54 +196,143 @@ def slide_window(binary_warped: 'MatLike', plot: bool = False) -> Tuple['MatLike
     
     return left_fit, right_fit
 
-def previous_window(left_fit: 'MatLike', right_fit: 'MatLike', warped_image: 'MatLike'):
+def previous_window(
+    warped_image: 'MatLike',
+    left_fit: np.ndarray, 
+    right_fit: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Get the left and right lane lines using previous window.
+    
+    The previous window is used to find the lane lines in the image. The
+    lane lines are found using the previous lane lines as a reference.
+    
+    Parameters
+    ----------
+    left_fit : np.ndarray
+        The left lane line from the previous frame.
+    right_fit : np.ndarray
+        The right lane line from the previous frame.
+    warped_image : MatLike
+        The binary warped image to find the lane lines.
+        
+    Returns
+    -------
+    Tuple
+        A tuple containing the left and right lane lines.
+    """
+    margin = utils.MARGIN
+
+    # Identify the x and y positions of all nonzero pixels in the image
     nonzero = warped_image.nonzero()
-    nonzeroy = np.array(nonzero[0])
-    nonzerox = np.array(nonzero[1])
-    margin = 100
-    left_lane_inds = ((nonzerox > (left_fit[0]*(nonzeroy**2) + left_fit[1]*nonzeroy + left_fit[2] - margin)) & 
-    (nonzerox < (left_fit[0]*(nonzeroy**2) + left_fit[1]*nonzeroy + left_fit[2] + margin)))
-    right_lane_inds = ((nonzerox > (right_fit[0]*(nonzeroy**2) + right_fit[1]*nonzeroy + right_fit[2] - margin)) &
-    (nonzerox < (right_fit[0]*(nonzeroy**2) + right_fit[1]*nonzeroy + right_fit[2] + margin)))
+    y = np.array(nonzero[0])
+    x = np.array(nonzero[1])
 
-    leftx = nonzerox[left_lane_inds]
-    lefty = nonzeroy[left_lane_inds]
-    rightx = nonzerox[right_lane_inds]
-    righty = nonzeroy[right_lane_inds]
+    # The coefficients of the polynomial for the left lane
+    A_left = left_fit[0]
+    B_left = left_fit[1]
+    C_left = left_fit[2]
 
-    left_fit = np.polyfit(lefty, leftx, 2)
-    right_fit = np.polyfit(righty, rightx, 2)
+    # The coefficients of the polynomial for the right lane
+    A_right = right_fit[0]
+    B_right = right_fit[1]
+    C_right = right_fit[2]
+
+    # Set the area of search based on activated x-values
+    left_lane_inds = (
+        (x > (A_left * y**2 + B_left * y + C_left - margin)) 
+        & (x < (A_left * y**2 + B_left * y + C_left + margin))
+    )
+    right_lane_inds = (
+        (x > (A_right * y**2 + B_right * y + C_right - margin))
+        & (x < (A_right * y**2 + B_right * y + C_right + margin))
+    )
+
+    left_x = x[left_lane_inds]
+    left_y = y[left_lane_inds]
+    right_x = x[right_lane_inds]
+    right_y = y[right_lane_inds]
+
+    # Fit a second order polynomial to each lane
+    left_fit = np.polyfit(left_y, left_x, 2)
+    right_fit = np.polyfit(right_y, right_x, 2)
 
     return left_fit, right_fit
 
-def draw_lines(image, warped_image, left_fit, right_fit, perspective):
+
+def create_ploty(
+    warped_image: 'MatLike', 
+    left_fit: np.ndarray,
+    right_fit: np.ndarray
+) -> np.ndarray:
+    """Create the y values for plotting the lane lines.
+
+    Create the y values for plotting the lane lines. The y values are
+    generated using the height of the image.
+
+    Parameters
+    ----------
+    warped_image : MatLike
+        The binary warped image to generate the y values.
+
+    Returns
+    -------
+    np.ndarray
+        The y values for plotting the lane lines.
+    """
+    height = warped_image.shape[0]
+    ploty = np.linspace(0, height - 1, height)
+
+    A_left = left_fit[0]
+    B_left = left_fit[1]
+    C_left = left_fit[2]
+
+    A_right = right_fit[0]
+    B_right = right_fit[1]
+    C_right = right_fit[2]
+
+    left_fitx = A_left * ploty**2 + B_left * ploty + C_left
+    right_fitx = A_right * ploty**2 + B_right * ploty + C_right
+
+    return ploty, left_fitx, right_fitx
+
+def draw_lines(
+    image: 'MatLike',
+    warped_image: 'MatLike',
+    ploty: np.ndarray,
+    left_fitx: np.ndarray,
+    right_fitx: np.ndarray,
+    plot: bool = False
+):
     # Create an image to draw the lines on
-    warp_zero = np.zeros_like(warped_image).astype(np.uint8)
-    color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+    color_warp = np.zeros_like(warped_image).astype(np.uint8)
 
-    ploty = np.linspace(0, warped_image.shape[0]-1, warped_image.shape[0])
-    left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-    right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+    if len(color_warp.shape) == 2:
+        color_warp = np.dstack((color_warp, color_warp, color_warp))
 
-    # Recast the x and y points into usable format for cv2.fillPoly()
-    pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
-    pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
-    pts = np.hstack((pts_left, pts_right))
+    # Recast the x and y points into usable format for cv.fillPoly()
+    points_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
+    points_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
+    points = np.hstack((points_left, points_right))
 
     # Draw the lane onto the warped blank image
-    cv.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
+    cv.fillPoly(color_warp, np.int_([points]), (230, 45, 30))
+
+    # Get the inverse perspective matrix
+    Minv = get_inverse_perspective_matrix()
 
     # Warp the blank back to original image space using inverse perspective matrix (Minv)
-    newwarp = cv.warpPerspective(color_warp, perspective, (image.shape[1], image.shape[0]))
+    new_warp = cv.warpPerspective(color_warp, Minv, (image.shape[1], image.shape[0]))
+
     # Combine the result with the original image
-    result = cv.addWeighted(image, 1, newwarp, 0.3, 0)
+    result = cv.addWeighted(image, 1, new_warp, 0.3, 0)
+
+    # if plot:
+    #     figure, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+    #     figure.tight_layout(pad=3.0)
+    #     ax1.imshow(cv.cvtColor(image, cv.COLOR_BGR2RGB))
+    #     ax1.set_title('Original Image')
+    #     ax2.imshow(cv.cvtColor(result, cv.COLOR_BGR2RGB))
+    #     ax2.set_title('Lane Lines')
+    #     plt.show()
 
     return result
-
-def radius_of_curvature(left_fit, right_fit, warped_image):
-    ploty = np.linspace(0, warped_image.shape[0]-1, warped_image.shape[0])
-    y_eval = np.max(ploty)
-    left_curverad = ((1 + (2*left_fit[0]*y_eval + left_fit[1])**2)**1.5) / np.absolute(2*left_fit[0])
-    right_curverad = ((1 + (2*right_fit[0]*y_eval + right_fit[1])**2)**1.5) / np.absolute(2*right_fit[0])
-
-    return left_curverad, right_curverad
