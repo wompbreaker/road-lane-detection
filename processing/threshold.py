@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from cv2.typing import MatLike
 
 
-@utils.timer
 def __remove_noise(image: 'MatLike') -> 'MatLike':
     """Remove noise from an image.
 
@@ -34,11 +33,11 @@ def __remove_noise(image: 'MatLike') -> 'MatLike':
     MatLike
         The image with noise removed.
     """
-    log.info("Removing noise from the image")
+    if utils.DEBUG:
+        log.info("Removing noise from the image")
     return cv.GaussianBlur(image, (5, 5), 0)
 
 
-@utils.timer
 def _filter_yellow_white(image: 'MatLike') -> 'MatLike':
     """Filter yellow and white colors from an image.
 
@@ -56,6 +55,8 @@ def _filter_yellow_white(image: 'MatLike') -> 'MatLike':
     MatLike
         The image after filtering yellow and white colors.
     """
+    if utils.DEBUG:
+        log.info("Filtering yellow and white colors from the image")
     image = __remove_noise(image)  # Apply noise removal to the image
     hls = cv.cvtColor(image, cv.COLOR_BGR2HLS)
 
@@ -76,11 +77,12 @@ def _filter_yellow_white(image: 'MatLike') -> 'MatLike':
 
     # Apply the mask to the image
     result = cv.bitwise_and(image, image, mask=mask)
-
+    
+    if utils.DEBUG:
+        log.info("Finished filtering yellow and white colors")
     return result
 
 
-@utils.timer
 def _color_threshold(image: 'MatLike') -> 'MatLike':
     """Ignore all colors except yellow and white.
 
@@ -99,6 +101,8 @@ def _color_threshold(image: 'MatLike') -> 'MatLike':
     MatLike
         The binary image after applying color thresholding.
     """
+    if utils.DEBUG:
+        log.info("Applying color thresholding to the image")
     # Convert the image to HLS color space
     hls = cv.cvtColor(image, cv.COLOR_RGB2HLS)
     # Separate the L and S channels
@@ -111,7 +115,8 @@ def _color_threshold(image: 'MatLike') -> 'MatLike':
     combined_binary = s_binary
 
     # Apply Sobel x to the L channel
-    log.info("Applying Sobel x to the L channel")
+    if utils.DEBUG:
+        log.info("Applying Sobel x to the L channel")
     sobel_x = cv.Sobel(l_channel, cv.CV_64F, 1, 0, ksize=9)
     scaled_sobel = np.uint8(255 * np.abs(sobel_x)/np.max(np.abs(sobel_x)))
 
@@ -132,12 +137,12 @@ def _color_threshold(image: 'MatLike') -> 'MatLike':
     combined_mask = (s_binary == 1) | (sobel_binary == 1)
     combined_binary[combined_mask] = 1
     combined_binary = np.uint8(255 * combined_binary / np.max(combined_binary))
-    log.info("Finished applying color thresholding")
+    if utils.DEBUG:
+        log.info("Finished applying color thresholding")
 
     return combined_binary
 
 
-@utils.timer
 def _mask_image(binary_image: np.uint8) -> 'MatLike':
     """Mask the region of interest in the image.
 
@@ -156,6 +161,8 @@ def _mask_image(binary_image: np.uint8) -> 'MatLike':
     MatLike
         The masked image that focuses on the region of interest.
     """
+    if utils.DEBUG:
+        log.info("Masking the region of interest")
     offset = 100
     # Define the polygon for the mask
     height = binary_image.shape[0]
@@ -180,7 +187,8 @@ def _mask_image(binary_image: np.uint8) -> 'MatLike':
     mask_image = cv.fillPoly(mask_image, mask_polyg, ignore_mask_color)
     # Apply the mask to the thresholded image
     masked_image = cv.bitwise_and(binary_image, mask_image)
-    log.info("Masking the region of interest complete")
+    if utils.DEBUG:
+        log.info("Masking the region of interest complete")
 
     # Turn the masked image lines from blue to white
     # white_masked_image = cv.inRange(masked_image, 1, 255)
@@ -188,7 +196,6 @@ def _mask_image(binary_image: np.uint8) -> 'MatLike':
     return masked_image
 
 
-@utils.timer
 def _fill_lines(image: 'MatLike') -> 'MatLike':
     """Fill the lane lines in the image.
 
@@ -205,13 +212,18 @@ def _fill_lines(image: 'MatLike') -> 'MatLike':
     MatLike
         The image with the lane lines filled.
     """
+    if utils.DEBUG:
+        log.info("Filling the lane lines in the image")
     kernel = np.ones((5, 5), np.uint8)
     image = cv.dilate(image, kernel, iterations=1)
     image = cv.erode(image, kernel, iterations=1)
+    
+    if utils.DEBUG:
+        log.info("Lane lines filled in the image")
     return image
 
 
-@utils.timer
+@utils.timer(name="threshold")
 def threshold_image(undistorted_image: 'MatLike') -> 'MatLike':
     """Threshold an image to identify lane lines.
 
@@ -229,7 +241,8 @@ def threshold_image(undistorted_image: 'MatLike') -> 'MatLike':
     MatLike
         A binary image after applying color and gradient thresholds.
     """
-    log.info("Thresholding the image")
+    if utils.DEBUG:
+        log.info("Thresholding the image")
     # Apply color thresholding
     filtered_image = _filter_yellow_white(undistorted_image)
 
@@ -242,6 +255,7 @@ def threshold_image(undistorted_image: 'MatLike') -> 'MatLike':
     # Mask the region of interest
     masked_image = _mask_image(binary_image)
 
-    log.info("Thresholding complete")
+    if utils.DEBUG:
+        log.info("Thresholding complete")
 
     return masked_image
