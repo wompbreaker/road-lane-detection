@@ -20,7 +20,7 @@ with np.load(utils.CALIBRATION_DATA_PATH) as data:
     dist_coeffs = data['dist']
 
 
-@utils.timer
+@utils.timer(name="undistort", start=True)
 def undistort_image(image: 'MatLike') -> 'MatLike':
     """Undistort an image using camera calibration parameters.
 
@@ -41,7 +41,8 @@ def undistort_image(image: 'MatLike') -> 'MatLike':
     Raises:
         FileNotFoundError: If the camera calibration data is not found.
     """
-    log.info('Undistorting the image...')
+    if utils.DEBUG:
+        log.info('Undistorting the image...')
     if not os.path.exists(utils.CALIBRATION_DATA_PATH):
         raise FileNotFoundError("Camera calibration data not found.")
 
@@ -58,6 +59,9 @@ def undistort_image(image: 'MatLike') -> 'MatLike':
 
     # Undistort the image
     undistorted_image = cv.undistort(image, matrix, dist_coeffs, None, matrix)
+    
+    if utils.DEBUG:
+        log.info('Image undistorted.')
 
     # Crop the image based on the region of interest
     # x, y, width, height = roi
