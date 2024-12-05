@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from cv2.typing import MatLike
 
 log = logging.getLogger("Perspective")
-
+h_inversed = None
 
 def _get_homography_matrix(src: 'MatLike', dst: 'MatLike') -> 'MatLike':
     """Get the homography matrix.
@@ -39,10 +39,27 @@ def _get_homography_matrix(src: 'MatLike', dst: 'MatLike') -> 'MatLike':
     return h
 
 
+def get_inverse_perspective_matrix() -> 'MatLike':
+    """Get the inverse perspective matrix.
+
+    Get the inverse perspective matrix using the warp matrix. The inverse
+    perspective matrix is used to transform the points back to the original
+    perspective.
+
+    Returns
+    -------
+    MatLike
+        The inverse perspective matrix.
+    """
+    src = utils.SRC_POINTS
+    dst = utils.DST_POINTS
+
+    h = _get_homography_matrix(src, dst)
+    return np.linalg.inv(h)
+
+
 def _warp_image(
     image: 'MatLike',
-    src: 'MatLike',
-    dst: 'MatLike'
 ) -> 'MatLike':
     """Warp an image to a bird's-eye view.
 
@@ -66,6 +83,12 @@ def _warp_image(
     'MatLike'
         A bird's-eye view perspective of the image.
     """
+    # Source points
+    src = utils.SRC_POINTS
+
+    # Destination points
+    dst = utils.DST_POINTS
+
     h = _get_homography_matrix(src, dst)
     height = image.shape[0]
     width = image.shape[1]
@@ -95,21 +118,7 @@ def perspective_transform(binary_image: 'MatLike') -> 'MatLike':
     log.info("Applying perspective transform...")
     image = cv.cvtColor(binary_image, cv.COLOR_BGR2RGB)
 
-    # Source points
-    top_right = (731, 477)
-    bottom_right = (1056, 689)
-    bottom_left = (260, 689)
-    top_left = (556, 477)
-    src = [top_right, bottom_right, bottom_left, top_left]
-
-    # Destination points
-    top_right = (900, 0)
-    bottom_right = (900, 689)
-    bottom_left = (250, 689)
-    top_left = (250, 0)
-    dst = [top_right, bottom_right, bottom_left, top_left]
-
-    image = _warp_image(image, src, dst)
+    image = _warp_image(image)
     log.info("Perspective transform applied.")
 
     return cv.cvtColor(image, cv.COLOR_RGB2BGR)
