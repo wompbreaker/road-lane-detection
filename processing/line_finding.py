@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Tuple
+import logging
 
 import numpy as np
 import cv2 as cv
@@ -10,7 +11,10 @@ from .perspective import get_inverse_perspective_matrix
 if TYPE_CHECKING:
     from cv2.typing import MatLike
 
-def get_histogram(image: 'MatLike') -> 'MatLike':
+log = logging.getLogger("LineFinding")
+
+
+def _get_histogram(image: 'MatLike') -> 'MatLike':
     """Get the histogram of an image.
 
     Get the histogram of an image. The histogram is calculated along the
@@ -26,6 +30,8 @@ def get_histogram(image: 'MatLike') -> 'MatLike':
     MatLike
         The histogram of the image.
     """
+    if utils.DEBUG:
+        log.info("Calculating histogram of the image")
     histogram = np.sum(image[image.shape[0] // 2:, :], axis=0)
     return histogram
 
@@ -47,6 +53,8 @@ def histogram_peaks(histogram: 'MatLike') -> Tuple[int, int]:
     Tuple
         A tuple containing the left and right peaks of the histogram.
     """
+    if utils.DEBUG:
+        log.info("Calculating histogram peaks")
     midpoint = np.int32(histogram.shape[0] / 2)
     left_peak = np.argmax(histogram[:midpoint])
     right_peak = np.argmax(histogram[midpoint:]) + midpoint
@@ -74,11 +82,15 @@ def slide_window(
     Tuple
         A tuple containing the left and right lane lines.
     """
+    if utils.DEBUG:
+        log.info("Finding lane lines using sliding window")
+        
+    # Check if the image is a color image
     if len(binary_warped.shape) == 3 and binary_warped.shape[2] == 3:
         binary_warped = cv.cvtColor(binary_warped, cv.COLOR_BGR2GRAY)
     
     # Take a histogram of the bottom half of the image
-    histogram = get_histogram(binary_warped)
+    histogram = _get_histogram(binary_warped)
     
     # Create an output image to draw on and visualize the result
     image = np.dstack((binary_warped, binary_warped, binary_warped)) * 255
@@ -194,7 +206,11 @@ def slide_window(
         plt.ylim(720, 0)
         plt.show()
     
+    if utils.DEBUG:
+        log.info("Lane lines found using sliding window")
+    
     return left_fit, right_fit
+
 
 def previous_window(
     warped_image: 'MatLike',
@@ -220,6 +236,9 @@ def previous_window(
     Tuple
         A tuple containing the left and right lane lines.
     """
+    if utils.DEBUG:
+        log.info("Finding lane lines using previous window")
+        
     margin = utils.MARGIN
 
     # Identify the x and y positions of all nonzero pixels in the image
@@ -255,10 +274,15 @@ def previous_window(
     # Fit a second order polynomial to each lane
     left_fit = np.polyfit(left_y, left_x, 2)
     right_fit = np.polyfit(right_y, right_x, 2)
+    
+    
+    if utils.DEBUG:
+        log.info("Finished finding lane lines using previous window")
 
     return left_fit, right_fit
 
 
+@utils.timer(name="plot")
 def create_ploty(
     warped_image: 'MatLike', 
     left_fit: np.ndarray,
@@ -279,6 +303,9 @@ def create_ploty(
     np.ndarray
         The y values for plotting the lane lines.
     """
+    if utils.DEBUG:
+        log.info("Creating y values for plotting")
+        
     height = warped_image.shape[0]
     ploty = np.linspace(0, height - 1, height)
 
@@ -292,9 +319,15 @@ def create_ploty(
 
     left_fitx = A_left * ploty**2 + B_left * ploty + C_left
     right_fitx = A_right * ploty**2 + B_right * ploty + C_right
+    
+    
+    if utils.DEBUG:
+        log.info("Finished creating y values for plotting")
 
     return ploty, left_fitx, right_fitx
 
+
+@utils.timer(name="draw", end=True)
 def draw_lines(
     image: 'MatLike',
     warped_image: 'MatLike',
@@ -303,6 +336,40 @@ def draw_lines(
     right_fitx: np.ndarray,
     plot: bool = False
 ):
+    """Draw the lane lines on the image.
+    
+    Draw the lane lines on the image using the left and right lane lines
+    and the y values for plotting. The lane lines are drawn on the image
+    using the red color.
+    
+    Parameters
+    ----------
+    image : MatLike
+        The original image to draw the lane lines.
+        
+    warped_image : MatLike
+        The binary warped image to draw the lane lines.
+        
+    ploty : np.ndarray
+        The y values for plotting the lane lines.
+        
+    left_fitx : np.ndarray
+        The x values for the left lane line.
+        
+    right_fitx : np.ndarray
+        The x values for the right lane line.
+        
+    plot : bool, optional
+        A flag to plot the lane lines, by default False.
+        
+    Returns
+    -------
+    MatLike
+        The image with the lane lines drawn on it.
+    """
+    if utils.DEBUG:
+        log.info("Drawing lane lines on the image")
+        
     # Create an image to draw the lines on
     color_warp = np.zeros_like(warped_image).astype(np.uint8)
 
@@ -334,5 +401,8 @@ def draw_lines(
     #     ax2.imshow(cv.cvtColor(result, cv.COLOR_BGR2RGB))
     #     ax2.set_title('Lane Lines')
     #     plt.show()
+    
+    if utils.DEBUG:
+        log.info("Finished drawing lane lines on the image")
 
     return result
