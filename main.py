@@ -206,9 +206,10 @@ def display_video(video_name: str):
         output = processing_pipeline(frame)
         if output is None:
             continue
-        out.write(output)
+        final = output[3]
+        out.write(final)
 
-        cv.imshow('Video', output)
+        cv.imshow('Video', final)
 
         # Exit the loop if 'q' is pressed
         if cv.waitKey(1) & 0xFF == ord('q'):
