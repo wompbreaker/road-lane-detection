@@ -12,7 +12,7 @@ import utils
 log = logging.getLogger("Calibration")
 
 
-@utils.timer
+@utils.timer(name="calibration", start=True, end=True)
 def camera_calibration(calibrate: bool = False) -> None:
     """Perform camera calibration using chessboard images.
 
@@ -20,13 +20,18 @@ def camera_calibration(calibrate: bool = False) -> None:
     a set of chessboard images. Calibration images path is located in the
     config module.
     """
+    if utils.DEBUG:
+        log.info("Calibrating the camera...")
     if calibrate:
         _clear_calibration_data()
 
-    if not calibrate and os.path.exists(utils.CALIBRATION_DATA_PATH):
+    if (
+        not calibrate 
+        and os.path.exists(utils.CALIBRATION_DATA_PATH) 
+        and utils.DEBUG
+    ):
         log.info("Camera calibration data already exists.")
         return
-    log.info("Calibrating the camera...")
     rows = utils.ROWS
     cols = utils.COLS
     images_path = utils.CALIBRATION_IMAGES
@@ -68,13 +73,17 @@ def camera_calibration(calibrate: bool = False) -> None:
         raise ValueError(f"Calibration error too high: {ret}")
     # Save the calibration data
     np.savez(utils.CALIBRATION_DATA_PATH, mtx=mtx, dist=dist)
-    log.info(f"Calibration data saved to: {utils.CALIBRATION_DATA_PATH}")
+    
+    if utils.DEBUG:
+        log.info(f"Calibration data saved to: {utils.CALIBRATION_DATA_PATH}")
 
 
 def _clear_calibration_data() -> None:
     """Clear the camera calibration data."""
     try:
         os.remove(utils.CALIBRATION_DATA_PATH)
-        log.info("Removed camera calibration data")
+        if utils.DEBUG:
+            log.info("Removed camera calibration data")
     except FileNotFoundError:
-        log.error("Camera calibration data not found.")
+        if utils.DEBUG:
+            log.error("Camera calibration data not found.")
