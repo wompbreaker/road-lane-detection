@@ -78,9 +78,9 @@ def clear_output_data() -> None:
 
 
 def compare_images(
-    image1: 'MatLike', 
-    image2: 'MatLike', 
-    image1_name: str ="Image 1", 
+    image1: 'MatLike',
+    image2: 'MatLike',
+    image1_name: str ="Image 1",
     image2_name: str ="Image 2"
 ) -> None:
     """Compare two images side by side.
@@ -108,8 +108,8 @@ def compare_images(
 
 
 def draw_points(
-    image: 'MatLike', 
-    points: np.ndarray, 
+    image: 'MatLike',
+    points: np.ndarray,
     color: tuple = (0, 255, 0)
 ) -> 'MatLike':
     """Draw points on an image.
@@ -138,8 +138,8 @@ def draw_points(
     green = (0, 255, 0)
     blue = (0, 0, 255)
     yellow = (0, 255, 255)
-    cv.circle(image, (int(top_right[0]), int(top_right[1])), 8, red, -1)
-    cv.circle(image, (int(bottom_right[0]), int(bottom_right[1])), 8, green, -1)
+    cv.circle(image, (int(top_right[0]), int(top_right[1])), 8, green, -1)
+    cv.circle(image, (int(bottom_right[0]), int(bottom_right[1])), 8, red, -1)
     cv.circle(image, (int(bottom_left[0]), int(bottom_left[1])), 8, blue, -1)
     cv.circle(image, (int(top_left[0]), int(top_left[1])), 8, yellow, -1)
 
@@ -148,7 +148,7 @@ def draw_points(
 
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments.
-    
+
     Returns
     -------
         argparse.Namespace: The parsed arguments.
@@ -156,8 +156,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Road Lane Detection")
     parser.add_argument(
         "-c",
-        "--calibrate", 
-        action="store_true", 
+        "--calibrate",
+        action="store_true",
         help="Perform camera calibration"
     )
     parser.add_argument(
@@ -195,8 +195,6 @@ def parse_args() -> argparse.Namespace:
 def validate_base_name(image_name: str | None, video_name: str | None) -> bool:
     """Validate the base name of the image or video.
 
-    Validate the base name of the image or video to ensure that the file exists.
-
     Parameters
     ----------
     image_name : str
@@ -219,17 +217,17 @@ def validate_base_name(image_name: str | None, video_name: str | None) -> bool:
     validate_output_directories()
     if image_name and video_name:
         raise ValueError("Both image and video names cannot be provided")
-    
+
     if image_name:
         if not os.path.isfile(f"test_images/{image_name}.jpg"):
             raise FileNotFoundError(f"Image file not found: {image_name}")
         return True
-    
+
     if video_name:
         if not os.path.isfile(f"test_videos/{video_name}.mp4"):
             raise FileNotFoundError(f"Video file not found: {video_name}")
         return True
-    
+
     return False
 
 
