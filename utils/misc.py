@@ -5,7 +5,7 @@ import os
 import argparse
 import time
 import logging
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Any
 
 import matplotlib.pyplot as plt
 import cv2 as cv
@@ -19,8 +19,8 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("Misc")
 
-# decorator for calculating the time taken to execute a function
-def timer(func: Callable) -> Callable:
+
+def timer(func: Callable, **attrs: Any) -> Callable:
     """Decorator to calculate the time taken to execute a function.
 
     Parameters
@@ -33,6 +33,8 @@ def timer(func: Callable) -> Callable:
     function
         The wrapper function
     """
+    start: bool = attrs.get("start", False)
+    end: bool = attrs.get("end", False)
     def wrapper(*args, **kwargs):
         start = time.time()
         result = func(*args, **kwargs)
