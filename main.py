@@ -36,27 +36,24 @@ def main():
     store_images: bool = args.store if args.store else False
     try:
         if utils.validate_base_name(image_name, video_name):
-            log.info(f"Processing image: {image_name}")
+            log.info(f"Processing: {image_name if image_name else video_name}")
     except (ValueError, FileNotFoundError) as e:
         log.error(e)
         return
-
-    if utils.validate_base_name(image_name, video_name):
-        log.info(f"Processing: {image_name if image_name else video_name}")
-
-    if clear:
-        utils.clear_output_data()
 
     if calibrate:
         try:
             processing.camera_calibration(calibrate)
         except ValueError as e:
             log.error(e)
+            return
 
+    if clear:
+        utils.clear_output_data()
+        
     if video_name:
         display_video(video_name)
         return
-
 
     image = cv.imread(utils.IMAGE_TO_UNDISTORT.format(name=image_name))
     if image is None:
