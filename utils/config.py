@@ -21,7 +21,10 @@ UNDISTORTED_IMAGE_PATH = 'outputs/undistorted/{name}_undistorted.jpg'
 THRESHOLDED_IMAGE_PATH = 'outputs/thresholded/{name}_thresholded.jpg'
 
 # Output path for the perspective transformed image
-PERSPECTIVE_IMAGE_PATH = 'outputs/warped/{name}_perspective.jpg'
+PERSPECTIVE_IMAGE_PATH = 'outputs/warped/{name}_warped.jpg'
+
+# Output path for the final image
+FINAL_IMAGE_PATH = 'outputs/final/{name}_final.jpg'
 
 # Source points
 _SRC_TOP_RIGHT = (731, 477)
