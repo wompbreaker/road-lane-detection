@@ -35,7 +35,8 @@ def setup_logging():
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         file_fmt = logging.Formatter(
-            '{message}',
+            '[{asctime}] [{levelname:<7}] {message}',
+            dt_fmt,
             style='{'
         )
         console_handler.setFormatter(file_fmt)
