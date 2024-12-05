@@ -22,16 +22,16 @@ def camera_calibration(calibrate: bool = False) -> None:
     """
     if utils.DEBUG:
         log.info("Calibrating the camera...")
-    
+
     if not os.path.exists(utils.CALIBRATION_DATA_PATH):
         utils.validate_output_directories()
-    
+
     if calibrate:
         _clear_calibration_data()
 
     if (
-        not calibrate 
-        and os.path.exists(utils.CALIBRATION_DATA_PATH) 
+        not calibrate
+        and os.path.exists(utils.CALIBRATION_DATA_PATH)
         and utils.DEBUG
     ):
         log.info("Camera calibration data already exists.")
@@ -77,7 +77,7 @@ def camera_calibration(calibrate: bool = False) -> None:
         raise ValueError(f"Calibration error too high: {ret}")
     # Save the calibration data
     np.savez(utils.CALIBRATION_DATA_PATH, mtx=mtx, dist=dist)
-    
+
     if utils.DEBUG:
         log.info(f"Calibration data saved to: {utils.CALIBRATION_DATA_PATH}")
 

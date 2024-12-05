@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("Perspective")
 h_inversed = None
 
+
 def _get_homography_matrix(src: 'MatLike', dst: 'MatLike') -> 'MatLike':
     """Get the homography matrix.
 
@@ -89,7 +90,7 @@ def _warp_image(
     """
     if utils.DEBUG:
         log.info("Warping image...")
-        
+
     # Source points
     src = utils.SRC_POINTS
 
@@ -99,7 +100,7 @@ def _warp_image(
     h = _get_homography_matrix(src, dst)
     height = image.shape[0]
     width = image.shape[1]
-    
+
     if utils.DEBUG:
         log.info("Warping image complete.")
     return cv.warpPerspective(image, h, (width, height))

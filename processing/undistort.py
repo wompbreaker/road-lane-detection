@@ -13,7 +13,7 @@ log = logging.getLogger("Undistort")
 
 if TYPE_CHECKING:
     from cv2.typing import MatLike
-    
+
 # Load the calibration data
 try:
     with np.load(utils.CALIBRATION_DATA_PATH) as data:
@@ -68,7 +68,7 @@ def undistort_image(image: 'MatLike') -> 'MatLike':
 
     # Undistort the image
     undistorted_image = cv.undistort(image, matrix, dist_coeffs, None, matrix)
-    
+
     if utils.DEBUG:
         log.info('Image undistorted.')
 

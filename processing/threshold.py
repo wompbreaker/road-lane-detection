@@ -77,7 +77,7 @@ def _filter_yellow_white(image: 'MatLike') -> 'MatLike':
 
     # Apply the mask to the image
     result = cv.bitwise_and(image, image, mask=mask)
-    
+
     if utils.DEBUG:
         log.info("Finished filtering yellow and white colors")
     return result
@@ -217,7 +217,7 @@ def _fill_lines(image: 'MatLike') -> 'MatLike':
     kernel = np.ones((5, 5), np.uint8)
     image = cv.dilate(image, kernel, iterations=1)
     image = cv.erode(image, kernel, iterations=1)
-    
+
     if utils.DEBUG:
         log.info("Lane lines filled in the image")
     return image
