@@ -5,7 +5,7 @@ import os
 import argparse
 import time
 import logging
-from typing import TYPE_CHECKING, Callable, Any
+from typing import TYPE_CHECKING, Callable
 
 import matplotlib.pyplot as plt
 import cv2 as cv
@@ -19,8 +19,10 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("Misc")
 
+log_string = ""
 
-def timer(func: Callable, **attrs: Any) -> Callable:
+
+def timer(**attrs) -> Callable:
     """Decorator to calculate the time taken to execute a function.
 
     Parameters
@@ -33,29 +35,47 @@ def timer(func: Callable, **attrs: Any) -> Callable:
     function
         The wrapper function
     """
-    start: bool = attrs.get("start", False)
-    end: bool = attrs.get("end", False)
-    def wrapper(*args, **kwargs):
-        start = time.time()
-        result = func(*args, **kwargs)
-        end = time.time()
-        elapsed_time = (end - start) * 1000
-        log = logging.getLogger(
-            func.__module__.lower().replace('processing.', '').capitalize()
-        )
-        log.info(f"{func.__name__} execution time: {elapsed_time:.2f} ms")
-        return result
-    return wrapper
+    def decorator(func: Callable) -> Callable:
+        start: bool = attrs.get("start", False)
+        name: str = attrs.get("name", func.__name__)
+        name = name.strip()
+        end: bool = attrs.get("end", False)
+
+        def wrapper(*args, **kwargs):
+            global log_string
+            start_time = time.time()
+            result = func(*args, **kwargs)
+            end_time = time.time()
+            elapsed_time = (end_time - start_time) * 1000
+            log = logging.getLogger(
+                func.__module__.lower().replace('processing.', '').capitalize()
+            )
+
+            if start:
+                log_string = f"[ {name}: {elapsed_time:.2f} ms "
+            else:
+                log_string += f"{name}: {elapsed_time:.2f} ms "
+            if end:
+                log_string += "]"
+                log.info(log_string)
+                log_string = ""
+            else:
+                log_string += "| "
+            return result
+        return wrapper
+    return decorator
+
 
 def clear_output_data() -> None:
     """Clear the output data.
 
-    Clear the output data from the previous run.
+    Clear output images from the outputs directory.
     """
     for root, _, files in os.walk('outputs'):
         for file in files:
             if file.endswith('.jpg'):
                 os.remove(os.path.join(root, file))
+
 
 def compare_images(
     image1: 'MatLike', 
@@ -85,6 +105,7 @@ def compare_images(
     ax2.set_title(image2_name, fontsize=50)
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
     plt.show()
+
 
 def draw_points(
     image: 'MatLike', 
@@ -123,7 +144,7 @@ def draw_points(
     cv.circle(image, (int(top_left[0]), int(top_left[1])), 8, yellow, -1)
 
     return image
-    
+
 
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments.
