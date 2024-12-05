@@ -7,6 +7,7 @@ ROWS = 6
 COLS = 9
 CALIBRATION_IMAGES = 'camera_cal/calibration*.jpg'
 CALIBRATION_DATA_PATH = 'outputs/calibration_data.npz'
+CALIBRATED = False
 
 BASE_IMAGE_NAME = 'test1'
 BASE_VIDEO_NAME = 'project_video01'

@@ -216,6 +216,7 @@ def validate_base_name(image_name: str | None, video_name: str | None) -> bool:
     FileNotFoundError
         If the image or video file is not found.
     """
+    validate_output_directories()
     if image_name and video_name:
         raise ValueError("Both image and video names cannot be provided")
     
@@ -230,3 +231,29 @@ def validate_base_name(image_name: str | None, video_name: str | None) -> bool:
         return True
     
     return False
+
+
+def validate_output_directories() -> None:
+    """Validate the output directories.
+
+    Create the output directories if they do not exist.
+    """
+    directories = [
+        'outputs',
+        'outputs/undistorted',
+        'outputs/thresholded',
+        'outputs/warped',
+        'outputs/final'
+    ]
+    for directory in directories:
+        if not os.path.exists(directory):
+            # Create the directory
+            try:
+                os.mkdir(directory)
+                print(f"Directory '{directory}' created successfully.")
+            except FileExistsError:
+                print(f"Directory '{directory}' already exists.")
+            except PermissionError:
+                print(f"Permission denied: Unable to create '{directory}'.")
+            except Exception as e:
+                print(f"An error occurred: {e}")
