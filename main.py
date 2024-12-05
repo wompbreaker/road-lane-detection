@@ -29,7 +29,7 @@ def main():
     clear: bool = args.clear
     image_name = args.image
     video_name = args.video
-    store_images: bool = args.store if args.store else utils.STORE_IMAGES
+    store_images: bool = args.store if args.store else False
     try:
         if utils.validate_base_name(image_name, video_name):
             log.info(f"Processing image: {image_name}")
@@ -46,17 +46,32 @@ def main():
     except ValueError as e:
         log.error(e)
 
-    # display_video(video_name)
-    # exit(0)
+    display_video(video_name)
+    exit(0)
     image = cv.imread(utils.IMAGE_TO_UNDISTORT.format(name=image_name))
     try:
+        # Undistort the image to remove lens distortion
         undistorted_image = processing.undistort_image(image)
     except FileNotFoundError as e:
         log.error(e)
+        return
+    
+    # Threshold the image to highlight lane lines
     thresholded_image = processing.threshold_image(undistorted_image)
-    # compare_images(undistorted_image, thresholded_image)
-    birds_eye_image = processing.perspective_transform(thresholded_image)
-    processing.slide_window(birds_eye_image)
+    
+    # Apply a perspective transform to the image
+    warped_image = processing.perspective_transform(thresholded_image)
+
+    # Find lane lines using a sliding window approach
+    left_fit, right_fit = processing.slide_window(warped_image)
+
+    # Fill in the lane lines
+    left_fit, right_fit = processing.previous_window(warped_image, left_fit, right_fit)
+
+    ploty, left_fitx, right_fitx = processing.create_ploty(warped_image, left_fit, right_fit)
+
+    # Draw the lane lines on the image
+    processing.draw_lines(undistorted_image, warped_image, ploty, left_fitx, right_fitx, False)
 
     # Store the images after processing
     if store_images:
@@ -70,12 +85,8 @@ def main():
         )
         cv.imwrite(
             utils.PERSPECTIVE_IMAGE_PATH.format(name=image_name),
-            birds_eye_image
+            warped_image
         )
-
-    # Display the final output
-    # cv.imshow('Output', birds_eye_image)
-    # cv.waitKey(0)
 
 
 def display_video(video_name: str):
@@ -117,11 +128,30 @@ def display_video(video_name: str):
             )
 
         undistorted_image = processing.undistort_image(frame)
-        warped_image = processing.perspective_transform(undistorted_image)
-        binary_image = processing.threshold_image(warped_image)
+    
+        # Threshold the image to highlight lane lines
+        thresholded_image = processing.threshold_image(undistorted_image)
+        
+        # Apply a perspective transform to the image
+        warped_image = processing.perspective_transform(thresholded_image)
 
-        display_image = cv.cvtColor(warped_image, cv.COLOR_BGR2RGB)
-        cv.imshow("Processed Frame", np.hstack((frame, display_image)))
+        # Find lane lines using a sliding window approach
+        try:
+            left_fit, right_fit = processing.slide_window(warped_image)
+        except ValueError as e:
+            print(e)
+            continue
+
+        # Fill in the lane lines
+        left_fit, right_fit = processing.previous_window(warped_image, left_fit, right_fit)
+
+        ploty, left_fitx, right_fitx = processing.create_ploty(warped_image, left_fit, right_fit)
+
+        # Draw the lane lines on the image
+        output = processing.draw_lines(undistorted_image, warped_image, ploty, left_fitx, right_fitx, False)
+        out.write(output)
+
+        cv.imshow('Video', output)
 
         # Exit the loop if 'q' is pressed
         if cv.waitKey(1) & 0xFF == ord('q'):
