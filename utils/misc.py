@@ -23,23 +23,44 @@ log_string = ""
 
 
 def timer(**attrs) -> Callable:
-    """Decorator to calculate the time taken to execute a function.
-
+    """Decorator to measure the execution time of a function.
+    
+    The decorator measures the execution time of a function and logs the
+    elapsed time in milliseconds. The decorator can be used with the following
+    optional arguments:
+    
+    - start: bool
+        If True, log the start of the function.
+    - end: bool
+        If True, log the end of the function.
+    - name: str
+        The name of the function to log.
+        
     Parameters
     ----------
-    func : function
-        The function to be executed
-
+    **attrs
+        The optional arguments to the decorator.
+        
     Returns
     -------
-    function
-        The wrapper function
+    Callable
+        The decorated function.
     """
     def decorator(func: Callable) -> Callable:
+        valid_args = ["start", "end", "name"]
+        # Raise an error if an invalid argument is provided
+        for key in attrs:
+            if key not in valid_args:
+                raise ValueError(f"Invalid argument: {key}")
         start: bool = attrs.get("start", False)
         name: str = attrs.get("name", func.__name__)
         name = name.strip()
         end: bool = attrs.get("end", False)
+        # Raise an error if an invalid argument is provided
+        if not isinstance(start, bool) or not isinstance(end, bool):
+            raise TypeError("Invalid argument type. Expected bool.")
+        if not isinstance(name, str):
+            raise TypeError("Invalid argument type. Expected str.")
 
         def wrapper(*args, **kwargs):
             global log_string
@@ -100,9 +121,9 @@ def compare_images(
     f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
     f.tight_layout()
     ax1.imshow(image1)
-    ax1.set_title(image1_name, fontsize=50)
+    ax1.set_title(image1_name, fontsize=40)
     ax2.imshow(image2)
-    ax2.set_title(image2_name, fontsize=50)
+    ax2.set_title(image2_name, fontsize=40)
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
     plt.show()
 
