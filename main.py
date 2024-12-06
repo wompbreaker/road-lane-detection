@@ -5,12 +5,14 @@ It initializes logging, parses command-line arguments, and performs
 image or video processing based on the provided arguments.
 """
 
+from __future__ import annotations
 import sys
 import logging
 from typing import TYPE_CHECKING
 
 import cv2 as cv
 import numpy as np
+import moviepy as mp
 
 import processing
 import utils
@@ -28,12 +30,12 @@ def main():
     log.info(f"Python version: {sys.version}")
     log.info(f"OpenCV version: {cv.__version__}")
     args = utils.parse_args()
-    calibrate: bool = args.calibrate
-    clear: bool = args.clear
+    calibrate: bool = args.calibrate if args.calibrate else False
+    clear: bool = args.clear if args.clear else False
     image_name = args.image
     video_name = args.video
-    utils.DEBUG = args.debug
-    store_images: bool = args.store if args.store else False
+    utils.DEBUG = args.debug if args.debug else False
+    utils.STORE = args.store if args.store else False
     try:
         if utils.validate_base_name(image_name, video_name):
             log.info(f"Processing: {image_name if image_name else video_name}")
@@ -65,7 +67,7 @@ def main():
         return
 
     undistorted_image, thresholded_image, warped_image, output = result
-    if store_images:
+    if utils.STORE:
         cv.imwrite(
             utils.UNDISTORTED_IMAGE_PATH.format(name=image_name),
             undistorted_image
@@ -84,7 +86,7 @@ def main():
         )
 
 
-def processing_pipeline(image: 'MatLike') -> 'MatLike':
+def processing_pipeline(image: MatLike) -> MatLike:
     """Process an image using the lane detection pipeline.
 
     Parameters
@@ -181,12 +183,8 @@ def display_video(video_name: str):
     if not video_capture.isOpened():
         raise FileNotFoundError(f"Video file not found: {video_name}")
 
-    out = cv.VideoWriter(
-        "final_video.mp4",
-        cv.VideoWriter_fourcc(*'mp4v'),
-        30,
-        (1280 * 3, 720)
-    )
+    if utils.STORE:
+        frames = []
 
     while True:
         ret, frame = video_capture.read()
@@ -204,19 +202,25 @@ def display_video(video_name: str):
         if output is None:
             continue
         final = output[3]
-        out.write(final)
+        if utils.STORE:
+            final_rgb = cv.cvtColor(final, cv.COLOR_BGR2RGB)
+            frames.append(final_rgb)
 
         cv.imshow('Video', final)
 
-        # Exit the loop if 'q' is pressed
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
     video_capture.release()
-    out.release()
     cv.destroyAllWindows()
 
-
+    if utils.STORE:
+        clip = mp.ImageSequenceClip(frames, fps=30)
+        clip.write_videofile(
+            utils.VIDEO_OUTPUT_PATH.format(name=video_name),
+            codec='libx264',
+            audio=False
+        )
 if __name__ == '__main__':
     with utils.setup_logging():
         main()
