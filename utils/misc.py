@@ -73,13 +73,13 @@ def clear_output_data() -> None:
     """
     for root, _, files in os.walk('outputs'):
         for file in files:
-            if file.endswith('.jpg'):
+            if file.endswith('.jpg') or file.endswith('.mp4'):
                 os.remove(os.path.join(root, file))
 
 
 def compare_images(
-    image1: 'MatLike',
-    image2: 'MatLike',
+    image1: MatLike,
+    image2: MatLike,
     image1_name: str ="Image 1",
     image2_name: str ="Image 2"
 ) -> None:
@@ -108,10 +108,10 @@ def compare_images(
 
 
 def draw_points(
-    image: 'MatLike',
+    image: MatLike,
     points: np.ndarray,
     color: tuple = (0, 255, 0)
-) -> 'MatLike':
+) -> MatLike:
     """Draw points on an image.
 
     Draw points on an image using the specified color. The points are drawn
@@ -241,7 +241,8 @@ def validate_output_directories() -> None:
         'outputs/undistorted',
         'outputs/thresholded',
         'outputs/warped',
-        'outputs/final'
+        'outputs/final',
+        'outputs/videos'
     ]
     for directory in directories:
         if not os.path.exists(directory):
