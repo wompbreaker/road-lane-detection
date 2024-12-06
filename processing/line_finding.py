@@ -1,5 +1,6 @@
 """This module contains functions to find the lane lines in an image."""
 
+from __future__ import annotations
 from typing import TYPE_CHECKING, Tuple
 import logging
 
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("LineFinding")
 
 
-def _get_histogram(image: 'MatLike') -> 'MatLike':
+def _get_histogram(image: MatLike) -> MatLike:
     """Get the histogram of an image.
 
     Get the histogram of an image. The histogram is calculated along the
@@ -38,7 +39,7 @@ def _get_histogram(image: 'MatLike') -> 'MatLike':
     return histogram
 
 
-def histogram_peaks(histogram: 'MatLike') -> Tuple[int, int]:
+def histogram_peaks(histogram: MatLike) -> Tuple[int, int]:
     """Get the peaks of a histogram.
 
     Get the peaks of a histogram. The histogram is divided in two halves
@@ -65,9 +66,9 @@ def histogram_peaks(histogram: 'MatLike') -> Tuple[int, int]:
 
 
 def slide_window(
-    binary_warped: 'MatLike',
+    binary_warped: MatLike,
     plot: bool = False
-) -> Tuple['MatLike', 'MatLike']:
+) -> Tuple[MatLike, MatLike]:
     """Get the left and right lane lines using sliding window.
 
     The sliding window is used to find the lane lines in the image. The image
@@ -223,7 +224,7 @@ def slide_window(
 
 
 def previous_window(
-    warped_image: 'MatLike',
+    warped_image: MatLike,
     left_fit: np.ndarray,
     right_fit: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -293,7 +294,7 @@ def previous_window(
 
 @utils.timer(name="plot")
 def create_ploty(
-    warped_image: 'MatLike',
+    warped_image: MatLike,
     left_fit: np.ndarray,
     right_fit: np.ndarray
 ) -> np.ndarray:
@@ -337,8 +338,8 @@ def create_ploty(
 
 @utils.timer(name="draw", end=True)
 def draw_lines(
-    image: 'MatLike',
-    warped_image: 'MatLike',
+    image: MatLike,
+    warped_image: MatLike,
     ploty: np.ndarray,
     left_fitx: np.ndarray,
     right_fitx: np.ndarray,

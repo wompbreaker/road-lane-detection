@@ -1,5 +1,6 @@
 """Module for undistorting images using camera calibration parameters."""
 
+from __future__ import annotations
 import os
 import logging
 from typing import TYPE_CHECKING
@@ -30,7 +31,7 @@ except FileNotFoundError:
 
 
 @utils.timer(name="undistort", start=True)
-def undistort_image(image: 'MatLike') -> 'MatLike':
+def undistort_image(image: MatLike) -> MatLike:
     """Undistort an image using camera calibration parameters.
 
     Apply camera calibration parameters to undistort an image. The camera

@@ -1,5 +1,6 @@
 """This module contains functions to turn an image to birds-eye view."""
 
+from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
@@ -15,7 +16,7 @@ log = logging.getLogger("Perspective")
 h_inversed = None
 
 
-def _get_homography_matrix(src: 'MatLike', dst: 'MatLike') -> 'MatLike':
+def _get_homography_matrix(src: MatLike, dst: MatLike) -> MatLike:
     """Get the homography matrix.
 
     Get the homography matrix using the source and destination points. The
@@ -42,7 +43,7 @@ def _get_homography_matrix(src: 'MatLike', dst: 'MatLike') -> 'MatLike':
     return h
 
 
-def get_inverse_perspective_matrix() -> 'MatLike':
+def get_inverse_perspective_matrix() -> MatLike:
     """Get the inverse perspective matrix.
 
     Get the inverse perspective matrix using the warp matrix. The inverse
@@ -64,8 +65,8 @@ def get_inverse_perspective_matrix() -> 'MatLike':
 
 
 def _warp_image(
-    image: 'MatLike',
-) -> 'MatLike':
+    image: MatLike,
+) -> MatLike:
     """Warp an image to a bird's-eye view.
 
     Warp an image to a bird's-eye view using the source and destination points.
@@ -85,7 +86,7 @@ def _warp_image(
 
     Returns
     -------
-    'MatLike'
+    MatLike
         A bird's-eye view perspective of the image.
     """
     if utils.DEBUG:
@@ -107,7 +108,7 @@ def _warp_image(
 
 
 @utils.timer(name="warp")
-def perspective_transform(binary_image: 'MatLike') -> 'MatLike':
+def perspective_transform(binary_image: MatLike) -> MatLike:
     """Apply a perspective transform to an image.
 
     Apply a perspective transform to an image using the source and destination
@@ -123,7 +124,7 @@ def perspective_transform(binary_image: 'MatLike') -> 'MatLike':
 
     Returns
     -------
-    'MatLike'
+    MatLike
         A bird's-eye view perspective of the binary image.
     """
     if utils.DEBUG:

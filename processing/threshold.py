@@ -1,5 +1,6 @@
 """This module contains functions to threshold an image."""
 
+from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
     from cv2.typing import MatLike
 
 
-def __remove_noise(image: 'MatLike') -> 'MatLike':
+def __remove_noise(image: MatLike) -> MatLike:
     """Remove noise from an image.
 
     Apply GaussianBlur to remove noise from an image. This
@@ -38,7 +39,7 @@ def __remove_noise(image: 'MatLike') -> 'MatLike':
     return cv.GaussianBlur(image, (5, 5), 0)
 
 
-def _filter_yellow_white(image: 'MatLike') -> 'MatLike':
+def _filter_yellow_white(image: MatLike) -> MatLike:
     """Filter yellow and white colors from an image.
 
     Apply color thresholding to the image to filter yellow and white colors.
@@ -83,7 +84,7 @@ def _filter_yellow_white(image: 'MatLike') -> 'MatLike':
     return result
 
 
-def _color_threshold(image: 'MatLike') -> 'MatLike':
+def _color_threshold(image: MatLike) -> MatLike:
     """Ignore all colors except yellow and white.
 
     Apply color thresholding to the image to ignore all colors except yellow
@@ -143,7 +144,7 @@ def _color_threshold(image: 'MatLike') -> 'MatLike':
     return combined_binary
 
 
-def _mask_image(binary_image: np.uint8) -> 'MatLike':
+def _mask_image(binary_image: np.uint8) -> MatLike:
     """Mask the region of interest in the image.
 
     Apply a mask to the image to focus on the region of interest. The function
@@ -196,7 +197,7 @@ def _mask_image(binary_image: np.uint8) -> 'MatLike':
     return masked_image
 
 
-def _fill_lines(image: 'MatLike') -> 'MatLike':
+def _fill_lines(image: MatLike) -> MatLike:
     """Fill the lane lines in the image.
 
     By dilating and eroding the image, the function fills the lane lines in the
@@ -224,7 +225,7 @@ def _fill_lines(image: 'MatLike') -> 'MatLike':
 
 
 @utils.timer(name="threshold")
-def threshold_image(undistorted_image: 'MatLike') -> 'MatLike':
+def threshold_image(undistorted_image: MatLike) -> MatLike:
     """Threshold an image to identify lane lines.
 
     Apply a combination of color and gradient thresholds to identify lane
