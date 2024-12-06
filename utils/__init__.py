@@ -6,6 +6,7 @@ from .config import *
 
 __all__ = [
     "DEBUG",
+    "STORE",
     "setup_logging",
     "clear_output_data",
     "parse_args",

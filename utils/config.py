@@ -1,6 +1,7 @@
 """Configuration file for the project"""
 
 DEBUG = False
+STORE = False
 
 # Camera calibration parameters
 ROWS = 6
@@ -53,6 +54,9 @@ DST_POINTS = [
 
 # Project video path
 PROJECT_VIDEO_PATH = 'test_videos/{name}.mp4'
+
+# Output path for the project video
+VIDEO_OUTPUT_PATH = 'outputs/videos/{name}_output.mp4'
 
 # Line finding parameters
 MARGIN = 100
