@@ -15,12 +15,24 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image0]: ./markdown_images/original.jpg "Original"
-[image1]: ./markdown_images/undistorted_no_roi.jpg "Undistorted Without ROI"
-[image2]: ./markdown_images/undistorted_with_roi.jpg "Undistorted With ROI"
-[image3]: ./markdown_images/threshold_yellow_white.jpg "Filtered yellow and white lines"
-[image4]: ./markdown_images/threshold_color.jpg "Sobel X transform"
-[image5]: ./markdown_images/threshold_masked.jpg "Threshold masked"
+<!-- Calibration section -->
+[image20]: ./markdown_images/calibration_comparison.jpg "Calibration Comparison"
+
+<!-- Undistort section -->
+[image30]: ./markdown_images/original.jpg "Original"
+[image31]: ./markdown_images/undistorted.jpg "Undistorted"
+
+<!-- Threshold section -->
+[image40]: ./markdown_images/threshold_yellow_white.jpg "Filtered yellow and white lines"
+[image41]: ./markdown_images/threshold_color.jpg "Sobel X transform"
+[image42]: ./markdown_images/threshold_masked.jpg "Threshold masked"
+
+<!-- Perspective transform section -->
+[image50]: ./markdown_images/warped.jpg "Warped Image"
+
+<!-- Line finding section -->
+[image60]: ./markdown_images/final.jpg "Final Image"
+[image61]: ./markdown_images/sliding_window.jpg "Sliding Window"
 
 ---
 
@@ -50,43 +62,36 @@ To install dependencies, run
 
 #### The camera calibration is designed to perform camera calibration using a set of chessboard images. The code for this step is located in "./processing/calibration.py".  
 
-This process computes the camera calibration matrix and distortion coefficients, which are needed for correcting lens distortion in images. The number of rows and columns of the chessboard, as well as the path to the calibration images, are retrieved from a configuration file. Object points, representing 3D points in real-world space, are prepared using a NumPy array and a meshgrid. Two lists, `objpoints` and `imgpoints`, are initialized to store 3D object points and 2D image points from all images. The function iterates over each image file, reads the image with `imread`, converts it to grayscale with `cvtColor`, and finds the chessboard corners with `findChessboardCorners`. If corners are found, their positions are refined using `cornerSubPix` and added to the lists. The camera is then calibrated using these points with `calibrateCamera`, and if the calibration error exceeds a threshold, an error is logged and a `ValueError` is raised. The output of this function is a `.npz` file which contains calibration data that will be used in the next step.
+This process computes the camera calibration matrix and distortion coefficients, which are needed for correcting lens distortion in images. The number of rows and columns of the chessboard, as well as the path to the calibration images, are retrieved from a configuration file (`utils/config.py`). Object points, representing 3D points in real-world space, are prepared using a NumPy array and a meshgrid. Two lists, `objpoints` and `imgpoints`, are initialized to store 3D object points and 2D image points from all images. The function iterates over each image file, reads the image with `imread`, converts it to grayscale with `cvtColor`, and finds the chessboard corners with `findChessboardCorners`. If corners are found, their positions are refined using `cornerSubPix` and added to the lists. The camera is then calibrated using these points with `calibrateCamera`, and if the calibration error exceeds a threshold, an error is logged and a `ValueError` is raised. The output of this function is a `.npz` file which contains calibration data that will be used in the next step.
+
+After a camera is calibrated, the image output of it is:
+
+![Calibration Comparison][image20]
 
 ### 3. Undistorting
 
 #### The `undistort_image` function is designed to undistort an image using previously computed camera calibration parameters. The code for this step is located in "./processing/undistort.py".  
 
 To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
-![Original][image0]
+![Original][image30]
 
-It begins by checking if the calibration data file exists at the specified path `(utils.CALIBRATION_DATA_PATH)`. The calibration data, including the camera matrix (`matrix`) and distortion coefficients (`dist_coeffs`), is loaded using `np.load`. The function then reads (`imread`) the image to be undistorted from the path specified in `utils.IMAGE_TO_UNDISTORT` and retrieves its dimensions. To achieve better undistortion, it computes an optimal new camera matrix and the region of interest (ROI) using `getOptimalNewCameraMatrix`. Before taking the Region of Interest (`roi`), the picture looks like this:
+It begins by checking if the calibration data file exists at the specified path `(utils.CALIBRATION_DATA_PATH)`. The calibration data, including the camera matrix (`matrix`) and distortion coefficients (`dist_coeffs`), are loaded using `np.load`. An image (or a video frame) is read with (`cv.imread`) and passed to the `undistort_image` function. This function then checks if the image size is 1280x720 and resizes it if it's not. It returns the undistorted image after `cv.undistort()` is called with the provided calibration data. The output of this step is:
 
-![Undistorted Without ROI][image1]
-
-To avoid having these black corners, it adds 2 lines of code which will represent RoI.
-
-```py
-# Crop the image based on the region of interest
-x, y, width, height = roi
-undistorted_image = undistorted_image[y:y+height, x:x+width]
-# Save the undistorted image
-cv.imwrite(utils.UNDISTORTED_IMAGE_PATH, undistorted_image)
-```
-The final output of step 2 is returned as an undistorted image with its Region of Interest:
-
-![Undistorted With ROI][image2]
-
+![Undistorted Image][image31]
 
 ### 4. Thresholding
 
 #### The `threshold_image` function applies a combination of color and gradient threshold to turn an undistorted image into a binary version of it. The code for this step is located in "./processing/threshold.py". 
 
-Processing for this function is divided into 3 steps. First step is filtering the image with `_filter_yellow_white` to only show yellow and white lines (these lines are the only ones relevant on the road). Before masking the original image, I applied Gaussian blur to remove any noise for easier and more accurate results. First I convert the image from BGR colorspace to HLS. 
+Processing for this function is divided into 3 steps. First step is filtering the image with `_filter_yellow_white` to only show yellow and white lines (these lines are the only ones relevant on the road). Before masking the undistorted image, I applied Gaussian blur to remove any noise for easier and more accurate results. First I convert the image from BGR colorspace to HLS. 
+
 ```py
 image = __remove_noise(image)  # Apply noise removal to the image
 hls = cv.cvtColor(image, cv.COLOR_BGR2HLS)
 ```
+
 After that I defined thresholds for yellow and white colors and created masks.
+
 ```py
 # Define the yellow color range
 min_yellow = np.array([25 / 360 * 255, 100, 150])
@@ -100,7 +105,9 @@ max_white = np.array([150, 255, 255])
 yellow_mask = cv.inRange(hls, min_yellow, max_yellow)
 white_mask = cv.inRange(hls, min_white, max_white)
 ```
+
 After creating masks, I applied the bitwise OR to combine the masks and then bitwise AND to apply the mask to the original image.
+
 ```py
 # Combine the masks
 mask = cv.bitwise_or(yellow_mask, white_mask)
@@ -110,16 +117,18 @@ result = cv.bitwise_and(image, image, mask=mask)
 
 return result
 ```
+
 The result after this step looks something like this:
 
-![Filtered yellow and white lines][image3]
+![Filtered yellow and white lines][image40]
 
 After filtering out only relevant colors, the image is then turned to HLS colorspace so we can separate lightness `(L)` and saturation `(S)` channels.  Sobel gradient transform on X axis is applied to the image. This is because we're only interested in vertical lines.
 
 ```py
 sobel_x = cv.Sobel(l_channel, cv.CV_64F, 1, 0, ksize=9)
-scaled_sobel = np.uint8(255 * np.abs(sobel_x))
+scaled_sobel = np.uint8(255 * np.abs(sobel_x)/np.max(np.abs(sobel_x)))
 ```
+
 The `scaled_sobel` variable contains the absolute values of these gradients, scaled to an 8-bit range (0-255) for easier processing and visualization. The `sobel_mask` variable holds binary values for gradients that are between values 20 and 255. Gradients below 20 are considered too weak to be significant edges. 
 
 ```py
@@ -135,41 +144,133 @@ s_binary[s_mask] = 1
 ```
 The output of this step is:
 
-![Sobel X transform][image4]
+![Sobel X transform][image41]
+
+In some cases, turning images into their binary form also causes lane lines to appear "hollow". To fill these gaps in lines, we can dilate and erode an image by calling the `_fill_lines` function.
 
 To adjust this image and turn it into a binary image, showing only Region of Interest with white lines, the `_mask_image` function is applied. It creates a polygon that represents the region of interest and fills it with white color. 
+
 ```py
 mask_polyg = np.array(
     [[
-        (offset, binary_image.shape[0]),  # Bottom left
-        (binary_image.shape[1] / 2.5, binary_image.shape[0] / 1.65),  # Top left
-        (binary_image.shape[1] / 1.8, binary_image.shape[0] / 1.65),  # Top right
-        (binary_image.shape[1], binary_image.shape[0])  # Bottom right
-    ]], 
+        (offset, height),  # Bottom left
+        (width // 2 - 45, height // 2 + 60),  # Top left
+        (width // 2 + 45, height // 2 + 60),  # Top right
+        (width - offset, height)  # Bottom right
+    ]],
     dtype=np.int32
 )
 ```
+
 This function then applies the mask to the image that was filtered with `_color_threshold` function.
+
 ```py
 # Fill the mask with the polygon
 mask_image = cv.fillPoly(mask_image, mask_polyg, ignore_mask_color)
 # Apply the mask to the thresholded image
 masked_image = cv.bitwise_and(binary_image, mask_image)
 ```
+
 And the final output of this processing module is:
 
-![Color threshold][image5]
+![Color threshold][image42]
 
 ### 5. Perspective transform
-#### The `perspective_transform` function applies a "bird's eye view" perspective transform to an image using the source and destination points.
+#### The `perspective_transform` function applies a "bird's eye view" perspective transform to an image using the source and destination points. The code for this step is located in "./processing/perspective.py". 
 
-The source points are the region of interest of the image and the destination points are the key points of a warped image.
+This function applies a perspective transform to an image using the source and destination points. The source points are the region of interest (ROI) of the image and the destination points are the warped image. The source and destination points are hardcoded in the configuration file. These points are then used in the `_get_homography_matrix` function which returns homography matrix. This matrix is then used in the `_warp_image` function when calling the `cv.warpPerspective` function which returns a bird's-eye view perspective of the binary image.
 
-TODO: Add your text here!!!
+The output of this step is:
 
-#### 6. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
+![Warped Image][image50]
 
-TODO: Add your text here!!!
+### 6. Lane-line pixel identification
+#### Identifying lane-line pixels and fitting their positions with a polynomial is done in code that is located in "./processing/line_finding.py". 
+
+The identification of lane-line pixels and fitting their positions with a polynomial is performed using the `slide_window` and `previous_window` functions. The `slide_window` function uses the sliding window technique to locate lane lines in the binary warped image. The image is divided into a specified number of windows, and the lane lines are found in each window by searching for nonzero pixels. To identify the base points of the lane lines we compute the histogram of the bottom half of the binary warped image by calling the `_get_histogram` function. After this, we identify the x and y positions of all nonzero pixels in the image:
+
+```py
+nonzero = binary_warped.nonzero()
+nonzeroy = np.array(nonzero[0])
+nonzerox = np.array(nonzero[1])
+```
+
+To find peaks of the left and right halves of the histogram we call the `histogram_peaks` function. After getting the base points of the left and right lane lines from the histogram, we initialize the current positions for the sliding windows. In the sliding windows loop (`./processing/line_finding.py:121`), for each window, we identify the boundaries and draw rectangles on the output image. After that we identify the nonzero pixels within the window and append their indices to the left and right indices list. If the number of pixels found is greater than `minpix` threshold, recent the next window based on the mean position of the pixels. 
+
+After the loop, we combine the lists of indices into single arrays for the left and right lanes.
+
+```py
+left_lane_inds = np.concatenate(left_lane_inds)
+right_lane_inds = np.concatenate(right_lane_inds)
+```
+
+Extract left and right line pixels positions:
+
+```py
+left_x = nonzerox[left_lane_inds]
+left_y = nonzeroy[left_lane_inds]
+right_x = nonzerox[right_lane_inds]
+right_y = nonzeroy[right_lane_inds]
+```
+
+Fitting a second order polynomial to each lane:
+
+```py
+left_fit = np.polyfit(left_y, left_x, 2)
+right_fit = np.polyfit(right_y, right_x, 2)
+```
+
+The function fits a second-order polynomial to the detected lane pixels and optionally plots the results. It returns polynomial coefficients for the left and right lane lines.
+
+![Sliding Window][image61]
+
+The `previous_window` function is used to find the lane lines in the image. The lane lines are found using the previous lane lines as a reference. This function uses the polynomial coefficients from a previous frame to narrow the search area for lane lines in the current frame.
+
+```py
+# Identify the x and y positions of all nonzero pixels in the image
+nonzero = warped_image.nonzero()
+y = np.array(nonzero[0])
+x = np.array(nonzero[1])
+
+# The coefficients of the polynomial for the left lane
+a_left = left_fit[0]
+b_left = left_fit[1]
+c_left = left_fit[2]
+
+# The coefficients of the polynomial for the right lane
+a_right = right_fit[0]
+b_right = right_fit[1]
+c_right = right_fit[2]
+```
+
+The search area is defined by a margin around the previous polynomial fit. The margin parameter is set in the configuration file.
+
+```py
+# Set the area of search based on activated x-values
+left_lane_inds = (
+    (x > (a_left * y**2 + b_left * y + c_left - margin))
+    & (x < (a_left * y**2 + b_left * y + c_left + margin))
+)
+right_lane_inds = (
+    (x > (a_right * y**2 + b_right * y + c_right - margin))
+    & (x < (a_right * y**2 + b_right * y + c_right + margin))
+)
+
+left_x = x[left_lane_inds]
+left_y = y[left_lane_inds]
+right_x = x[right_lane_inds]
+right_y = y[right_lane_inds]
+```
+
+The function identifies the nonzero pixels within the search area and fits a second-order polynomial to the detected lane pixels.
+
+```py
+# Fit a second order polynomial to each lane
+left_fit = np.polyfit(left_y, left_x, 2)
+right_fit = np.polyfit(right_y, right_x, 2)
+```
+
+The polynomial coefficients for the left and right lane lines are returned.
 
 #### 7. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
