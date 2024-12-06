@@ -34,6 +34,8 @@ The goals / steps of this project are the following:
 [image60]: ./markdown_images/final.jpg "Final Image"
 [image61]: ./markdown_images/sliding_window.jpg "Sliding Window"
 
+<!-- Video section -->
+[video1]: ./markdown_images/project_video01_output.mp4 "Final Video"
 ---
 
 ### 1. Setup
@@ -276,18 +278,19 @@ The polynomial coefficients for the left and right lane lines are returned.
 
 TODO: Add your text here!!!
 
-#### 8. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
+#### 8. Plotted image
 
-TODO: Add your text here!!!
+![Final image][image60]
 
-### Pipeline (video)
+### Video output
 
-#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
-
-TODO: Add your text here!!!
+<video width="1280" height="720" controls>
+  <source src="./videos/project_video01_output.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ### Discussion
 
-#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+#### Current issues
 
-TODO: Add your text here!!!
+Right now, as you can see in the video, it appears there are some wobbly lines plotted when there are dashed road lines detected. Also, there is some strange behaviour when the code tries to process lines in the shadow. This is most likely a problem with how the image is thresholded.
