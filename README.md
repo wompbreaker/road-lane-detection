@@ -284,7 +284,7 @@ TODO: Add your text here!!!
 
 ### Video output
 
-![Watch the video](https://raw.githubusercontent.com/wompbreaker/road-lane-detection/main/markdown_images/project_video01_output.mp4)
+https://github.com/user-attachments/assets/06ef85b9-ce5d-4d71-be84-2ea7ee0b902a
 
 ### Discussion
 
