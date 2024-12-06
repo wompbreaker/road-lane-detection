@@ -26,9 +26,9 @@ except FileNotFoundError:
     try:
         utils.validate_output_directories()
         camera_calibration(calibrate=True)
-    except ValueError as e:
+    except Exception as e:
         log.error(e)
-
+        
 
 @utils.timer(name="undistort", start=True)
 def undistort_image(image: MatLike) -> MatLike:
@@ -61,21 +61,11 @@ def undistort_image(image: MatLike) -> MatLike:
     if height != 720 or width != 1280:
         image = cv.resize(image, (1280, 720), interpolation=cv.INTER_LINEAR)
 
-    # Get the optimal camera matrix for better undistortion
-    # ROI: Region of Interest
-    # matrix, roi = cv.getOptimalNewCameraMatrix(
-    #     matrix, dist_coeffs, (width, height), 1, (width, height)
-    # )
-
     # Undistort the image
     undistorted_image = cv.undistort(image, matrix, dist_coeffs, None, matrix)
 
     if utils.DEBUG:
         log.info('Image undistorted.')
-
-    # Crop the image based on the region of interest
-    # x, y, width, height = roi
-    # undistorted_image = undistorted_image[y:y+height, x:x+width]
 
     # Return the undistorted image
     return undistorted_image

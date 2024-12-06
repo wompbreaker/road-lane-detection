@@ -404,7 +404,7 @@ def draw_lines(
     )
 
     # Combine the result with the original image
-    result = cv.addWeighted(image, 1, new_warp, 0.3, 0)
+    result = cv.addWeighted(image, 1, new_warp, 0.5, 0)
 
     if utils.DEBUG:
         log.info("Finished drawing lane lines on the image")

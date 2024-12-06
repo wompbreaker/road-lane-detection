@@ -119,13 +119,15 @@ def _color_threshold(image: MatLike) -> MatLike:
     if utils.DEBUG:
         log.info("Applying Sobel x to the L channel")
     sobel_x = cv.Sobel(l_channel, cv.CV_64F, 1, 0, ksize=9)
-    scaled_sobel = np.uint8(255 * np.abs(sobel_x)/np.max(np.abs(sobel_x)))
+    scaled_sobel = np.uint8(255 * np.abs(sobel_x) / np.max(np.abs(sobel_x)))
 
     # Apply thresholds to the Sobel x gradient
     min_magnitude = 20
     max_magnitude = 255
-    sobel_mask = (scaled_sobel > min_magnitude) \
+    sobel_mask = (
+        (scaled_sobel > min_magnitude) 
         & (scaled_sobel <= max_magnitude)
+    )
     sobel_binary[sobel_mask] = 1
 
     # Apply thresholds to the S channel
@@ -138,6 +140,7 @@ def _color_threshold(image: MatLike) -> MatLike:
     combined_mask = (s_binary == 1) | (sobel_binary == 1)
     combined_binary[combined_mask] = 1
     combined_binary = np.uint8(255 * combined_binary / np.max(combined_binary))
+    
     if utils.DEBUG:
         log.info("Finished applying color thresholding")
 
@@ -251,10 +254,10 @@ def threshold_image(undistorted_image: MatLike) -> MatLike:
     binary_image = _color_threshold(filtered_image)
 
     # Fill the lane lines in the image
-    binary_image = _fill_lines(binary_image)
+    filled_binary_image = _fill_lines(binary_image)
 
     # Mask the region of interest
-    masked_image = _mask_image(binary_image)
+    masked_image = _mask_image(filled_binary_image)
 
     if utils.DEBUG:
         log.info("Thresholding complete")
