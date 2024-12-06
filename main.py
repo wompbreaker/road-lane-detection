@@ -215,7 +215,7 @@ def display_video(video_name: str):
     cv.destroyAllWindows()
 
     if utils.STORE:
-        clip = mp.ImageSequenceClip(frames, fps=30)
+        clip = mp.ImageSequenceClip(frames, fps=20)
         clip.write_videofile(
             utils.VIDEO_OUTPUT_PATH.format(name=video_name),
             codec='libx264',
