@@ -284,10 +284,7 @@ TODO: Add your text here!!!
 
 ### Video output
 
-<video width="1280" height="720" controls>
-  <source src="./videos/project_video01_output.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Final video](https://raw.githubusercontent.com/wompbreaker//road-lane-detection/tree/main/markdown_images/project_video01_output.mp4)
 
 ### Discussion
 
