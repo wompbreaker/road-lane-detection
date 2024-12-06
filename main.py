@@ -9,6 +9,7 @@ from __future__ import annotations
 import sys
 import logging
 from typing import TYPE_CHECKING
+import argparse
 
 import cv2 as cv
 import numpy as np
@@ -29,7 +30,8 @@ def main():
     log = logging.getLogger(__name__.replace('__', ''))
     log.info(f"Python version: {sys.version}")
     log.info(f"OpenCV version: {cv.__version__}")
-    args = utils.parse_args()
+    parser = utils.get_parser()
+    args = parser.parse_args()
     calibrate: bool = args.calibrate if args.calibrate else False
     clear: bool = args.clear if args.clear else False
     image_name = args.image
@@ -39,6 +41,9 @@ def main():
     try:
         if utils.validate_base_name(image_name, video_name):
             log.info(f"Processing: {image_name if image_name else video_name}")
+        else:
+            parser.print_help()
+            return
     except (ValueError, FileNotFoundError) as e:
         log.error(e)
         return

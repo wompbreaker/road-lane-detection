@@ -167,12 +167,13 @@ def draw_points(
     return image
 
 
-def parse_args() -> argparse.Namespace:
+def get_parser() -> argparse.ArgumentParser:
     """Parse command-line arguments.
 
     Returns
     -------
-        argparse.Namespace: The parsed arguments.
+    argparse.ArgumentParser: 
+        The argument parser object.
     """
     parser = argparse.ArgumentParser(description="Road Lane Detection")
     parser.add_argument(
@@ -210,7 +211,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Enable debug mode"
     )
-    return parser.parse_args()
+    return parser
 
 
 def validate_base_name(image_name: str | None, video_name: str | None) -> bool:

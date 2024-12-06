@@ -9,7 +9,7 @@ __all__ = [
     "STORE",
     "setup_logging",
     "clear_output_data",
-    "parse_args",
+    "get_parser",
     "validate_base_name",
     "validate_output_directories",
     "compare_images",
