@@ -180,36 +180,36 @@ def get_parser() -> argparse.ArgumentParser:
         "-c",
         "--calibrate",
         action="store_true",
-        help="Perform camera calibration"
+        help="Perform camera calibration before processing"
     )
     parser.add_argument(
         "--clear",
         action="store_true",
-        help="Clear output images"
+        help="Clear output images and videos before processing"
     )
     parser.add_argument(
         "-i",
         "--image",
         type=str,
-        help="The name of the image to process"
+        help="The name of the image to process. Use 'test_images' directory."
     )
     parser.add_argument(
         "-v",
         "--video",
         type=str,
-        help="The name of the video to process"
+        help="The name of the video to process. Use 'test_videos' directory."
     )
     parser.add_argument(
         "-s",
         "--store",
         action="store_true",
-        help="Store the images after processing"
+        help="Store the output images and videos in the 'outputs' directory"
     )
     parser.add_argument(
         "-d",
         "--debug",
         action="store_true",
-        help="Enable debug mode"
+        help="Enable debug mode. Display additional information."
     )
     return parser
 
