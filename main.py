@@ -96,6 +96,15 @@ def main():
             utils.FINAL_IMAGE_PATH.format(name=image_name),
             output
         )
+        log.info(f"Images saved to the output directory.")
+    cv.imshow("Final Image", output)
+    cv.imshow("Image with Lines", image_with_lines)
+    cv.imshow("Warped Image", warped_image)
+    cv.imshow("Thresholded Image", thresholded_image)
+    cv.imshow("Undistorted Image", undistorted_image)
+    cv.imshow("Original Image", image)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
 
 
 def processing_pipeline(image: MatLike) -> MatLike:
