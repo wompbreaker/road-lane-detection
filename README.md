@@ -34,6 +34,9 @@ The goals / steps of this project are the following:
 [image60]: ./markdown_images/final.jpg "Final Image"
 [image61]: ./markdown_images/sliding_window.jpg "Sliding Window"
 
+<!-- Calculation section -->
+[image70]: ./markdown_images/final_with_info.jpg "Final Image With Info"
+
 <!-- Video section -->
 [video1]: ./markdown_images/project_video01_output.mp4 "Final Video"
 ---
@@ -59,6 +62,13 @@ to activate the virtual environment.
 To install dependencies, run
 
 `pip install -r requirements.txt`
+
+#### 1.4 Starting the program
+To start the program you can just run `python main.py` and the help menu will be displayed. The most common usage is processing a video and saving it after it's processed. Simply pick a video from the `test_videos` directory and run:
+
+`python main.py --video project_video01 --store`
+
+If you set up everything correctly, this will process and save the video.
 
 ### 2. Camera Calibration
 
@@ -274,13 +284,63 @@ right_fit = np.polyfit(right_y, right_x, 2)
 
 The polynomial coefficients for the left and right lane lines are returned.
 
-#### 7. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
+Output of this step will be similar to output of the final image. The only difference is that the final image will have some additional information written in the corner of the image. Output for this step is:
+![Final image without info][image60]
 
-TODO: Add your text here!!!
+### 7. Curvature radius and vehicle center offset
+#### Calculation of radius of a curvature and vehicle center offset is done through functions `_calculate_curvature` and `_calculate_car_position`. The code for this step is located in "./processing/calculations.py". 
+
+This module contains functions for calculating the curvature of the road and the position of the car relative to the center of the lane. It uses polynomial fitting to approximate the lane lines and then computes the radius of curvature and the car's offset from the lane center.
+
+The purpose of the `_calculate_curvature` function is to calculate the curbature of the road in meters using the polynomial coefficients of the left and right lane lines. It converts pixel coordinates to real-world coordinates using conversion factors `XM_PER_PIX` and `YM_PER_PIX` which are located in the `config.py` file.
+
+```py
+# Pixel to meter conversion
+YM_PER_PIX = 30 / 720
+XM_PER_PIX = 3.7 / 700
+```
+
+It next fits quadratic polynomials to the lane line points. The formula for calculating the radius of a curvature is:
+
+```py
+# Formula for the curvature of the road: R = (1 + (2Ay + B)^2)^(3/2) / |2A|
+num_left = (1 + (2 * a_left * y_eval * y_coeff + b_left)**2)**1.5
+den_left = np.absolute(2 * a_left)
+```
+
+The purpose of the `_calculate_car_position` function is to calculate the position of the car relative to the center of the lane in meters. It determines the x-coordinates of the bottom of the left and right lane lines.
+
+```py
+height = frame.shape[0]
+width = frame.shape[1]
+car_location = width / 2
+
+a_left = left_fit[0]
+b_left = left_fit[1]
+c_left = left_fit[2]
+
+a_right = right_fit[0]
+b_right = right_fit[1]
+c_right = right_fit[2]
+
+# Fine the x coordinate of the lane line bottom
+bottom_left = a_left * height**2 + b_left * height + c_left
+bottom_right = a_right * height**2 + b_right * height + c_right
+```
+
+It calculates the center of the lane and the car's offset from this center and then converts it from pixels to centimeters.
+
+```py
+center_lane = (bottom_right - bottom_left) / 2 + bottom_left
+center_offset = (np.abs(car_location) - np.abs(center_lane))  # in pixels
+center_offset = center_offset * utils.XM_PER_PIX * 100  # in cm
+```
+
+After all this is done, we display this information with the `display_curvature_offset` function
 
 #### 8. Plotted image
 
-![Final image][image60]
+![Final image with info][image70]
 
 ### Video output
 
@@ -291,3 +351,5 @@ https://github.com/user-attachments/assets/06ef85b9-ce5d-4d71-be84-2ea7ee0b902a
 #### Current issues
 
 Right now, as you can see in the video, it appears there are some wobbly lines plotted when there are dashed road lines detected. Also, there is some strange behaviour when the code tries to process lines in the shadow. This is most likely a problem with how the image is thresholded.
+
+Another issue is with calculating the radius of a curvature. Most likely not a problem with the function itself, but with the parameters that are being passed to it.
