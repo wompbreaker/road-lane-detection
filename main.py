@@ -9,7 +9,6 @@ from __future__ import annotations
 import sys
 import logging
 from typing import TYPE_CHECKING
-import argparse
 
 import cv2 as cv
 import numpy as np
@@ -120,11 +119,14 @@ def processing_pipeline(image: MatLike) -> MatLike:
 
     try:
         # Fill in the lane lines
-        left_fit, right_fit = processing.previous_window(
+        left_fit, right_fit, _ = processing.previous_window(
             warped_image,
             left_fit,
             right_fit
         )
+
+        # left_y, left_x = pixel_points[0], pixel_points[1]
+        # right_y, right_x = pixel_points[2], pixel_points[3]
 
         mov_avg_left = np.append(mov_avg_left, np.array([left_fit]), axis=0)
         mov_avg_right = np.append(mov_avg_right, np.array([right_fit]), axis=0)
@@ -150,23 +152,36 @@ def processing_pipeline(image: MatLike) -> MatLike:
     ])
 
     # Generate the plot points
-    ploty, left_fitx, right_fitx = processing.create_ploty(
+    plot_y, left_fitx, right_fitx = processing.create_ploty(
         warped_image,
         left_fit,
         right_fit
     )
 
     # Draw the lane lines on the image
-    output = processing.draw_lines(
+    frame_with_lines = processing.draw_lines(
         undistorted_image,
         warped_image,
-        ploty,
+        plot_y,
         left_fitx,
         right_fitx,
         False
     )
 
-    return undistorted_image, thresholded_image, warped_image, output
+    left_y, left_x, right_y, right_x = None, None, None, None
+
+    output = processing.display_curvature_offset(
+        frame_with_lines,
+        plot_y,
+        left_fit,
+        right_fit,
+        left_y,
+        left_x,
+        right_y,
+        right_x
+    )
+
+    return undistorted_image, thresholded_image, warped_image, frame_with_lines, output
 
 
 def display_video(video_name: str):
@@ -206,7 +221,7 @@ def display_video(video_name: str):
         output = processing_pipeline(frame)
         if output is None:
             continue
-        final = output[3]
+        final = output[-1]
         if utils.STORE:
             final_rgb = cv.cvtColor(final, cv.COLOR_BGR2RGB)
             frames.append(final_rgb)
