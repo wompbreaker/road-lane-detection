@@ -263,8 +263,9 @@ def validate_output_directories() -> None:
         'outputs/undistorted',
         'outputs/thresholded',
         'outputs/warped',
+        'outputs/lines',
         'outputs/final',
-        'outputs/videos'
+        'outputs/videos',
     ]
     for directory in directories:
         if not os.path.exists(directory):

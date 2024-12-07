@@ -25,6 +25,9 @@ THRESHOLDED_IMAGE_PATH = 'outputs/thresholded/{name}_thresholded.jpg'
 # Output path for the perspective transformed image
 PERSPECTIVE_IMAGE_PATH = 'outputs/warped/{name}_warped.jpg'
 
+# Output path for the image with lines
+IMAGE_WITH_LINES_PATH = 'outputs/lines/{name}_lines.jpg'
+
 # Output path for the final image
 FINAL_IMAGE_PATH = 'outputs/final/{name}_final.jpg'
 
