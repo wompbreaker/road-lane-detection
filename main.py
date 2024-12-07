@@ -70,7 +70,11 @@ def main():
         log.error(f"Unable to process image: {image_name}")
         return
 
-    undistorted_image, thresholded_image, warped_image, output = result
+    undistorted_image = result[0]
+    thresholded_image = result[1]
+    warped_image = result[2]
+    image_with_lines = result[3]
+    output = result[4]
     if utils.STORE:
         cv.imwrite(
             utils.UNDISTORTED_IMAGE_PATH.format(name=image_name),
@@ -83,6 +87,10 @@ def main():
         cv.imwrite(
             utils.PERSPECTIVE_IMAGE_PATH.format(name=image_name),
             warped_image
+        )
+        cv.imwrite(
+            utils.IMAGE_WITH_LINES_PATH.format(name=image_name),
+            image_with_lines
         )
         cv.imwrite(
             utils.FINAL_IMAGE_PATH.format(name=image_name),
@@ -247,6 +255,8 @@ def display_video(video_name: str):
             codec='libx264',
             audio=False
         )
+
+
 if __name__ == '__main__':
     with utils.setup_logging():
         main()
