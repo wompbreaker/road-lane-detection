@@ -56,7 +56,7 @@ def main():
 
     if clear:
         utils.clear_output_data()
-        
+
     if video_name:
         display_video(video_name)
         return
@@ -110,10 +110,10 @@ def processing_pipeline(image: MatLike) -> MatLike:
     except FileNotFoundError as e:
         log.error(e)
         return
-    
+
     # Threshold the image to highlight lane lines
     thresholded_image = processing.threshold_image(undistorted_image)
-    
+
     # Apply a perspective transform to the image
     warped_image = processing.perspective_transform(thresholded_image)
 
@@ -139,7 +139,7 @@ def processing_pipeline(image: MatLike) -> MatLike:
             mov_avg_right = np.array([right_fit])
         except:
             return None
-        
+
     left_fit = np.array([
         np.mean(mov_avg_left[::-1][:, 0][0:10]),
         np.mean(mov_avg_left[::-1][:, 1][0:10]),
@@ -181,7 +181,13 @@ def processing_pipeline(image: MatLike) -> MatLike:
         right_x
     )
 
-    return undistorted_image, thresholded_image, warped_image, frame_with_lines, output
+    return (
+        undistorted_image,
+        thresholded_image,
+        warped_image,
+        frame_with_lines,
+        output
+    )
 
 
 def display_video(video_name: str):
