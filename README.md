@@ -344,7 +344,7 @@ After all this is done, we display this information with the `display_curvature_
 
 ### Video output
 
-https://github.com/user-attachments/assets/06ef85b9-ce5d-4d71-be84-2ea7ee0b902a
+https://github.com/user-attachments/assets/70b1f4df-4656-48b1-a5e8-0220a57288de
 
 ### Discussion
 
