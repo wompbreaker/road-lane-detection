@@ -200,9 +200,9 @@ def slide_window(
 
         binary_height = binary_warped.shape[0]
         # Generate x and y values for plotting
-        ploty = np.linspace(0, binary_height - 1, binary_height)
-        left_fitx = a_left * ploty**2 + b_left * ploty + c_left
-        right_fitx = a_right * ploty**2 + b_right * ploty + c_right
+        plot_y = np.linspace(0, binary_height - 1, binary_height)
+        left_fitx = a_left * plot_y**2 + b_left * plot_y + c_left
+        right_fitx = a_right * plot_y**2 + b_right * plot_y + c_right
 
         # Create an image to draw on and an image to show the selection window
         image[left_y, left_x] = [255, 0, 0]
@@ -211,8 +211,8 @@ def slide_window(
         # Plot the polynomial lines on the image
         plt.imshow(image)
         plt.title('Sliding Window')
-        plt.plot(left_fitx, ploty, color='yellow')
-        plt.plot(right_fitx, ploty, color='yellow')
+        plt.plot(left_fitx, plot_y, color='yellow')
+        plt.plot(right_fitx, plot_y, color='yellow')
         plt.xlim(0, 1280)
         plt.ylim(720, 0)
         plt.show()
@@ -227,7 +227,7 @@ def previous_window(
     warped_image: MatLike,
     left_fit: np.ndarray,
     right_fit: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, np.ndarray, Tuple]:
     """Get the left and right lane lines using previous window.
 
     The previous window is used to find the lane lines in the image. The
@@ -244,8 +244,8 @@ def previous_window(
 
     Returns
     -------
-    Tuple
-        A tuple containing the left and right lane lines.
+    Tuple[np.ndarray, np.ndarray, Tuple]
+        A tuple containing the left and right lane lines and pixel points.
     """
     if utils.DEBUG:
         log.info("Finding lane lines using previous window")
@@ -282,6 +282,8 @@ def previous_window(
     right_x = x[right_lane_inds]
     right_y = y[right_lane_inds]
 
+    pixel_points = (left_x, left_y, right_x, right_y)
+
     # Fit a second order polynomial to each lane
     left_fit = np.polyfit(left_y, left_x, 2)
     right_fit = np.polyfit(right_y, right_x, 2)
@@ -289,7 +291,7 @@ def previous_window(
     if utils.DEBUG:
         log.info("Finished finding lane lines using previous window")
 
-    return left_fit, right_fit
+    return left_fit, right_fit, pixel_points
 
 
 @utils.timer(name="plot")
@@ -317,7 +319,7 @@ def create_ploty(
         log.info("Creating y values for plotting")
 
     height = warped_image.shape[0]
-    ploty = np.linspace(0, height - 1, height)
+    plot_y = np.linspace(0, height - 1, height)
 
     a_left = left_fit[0]
     b_left = left_fit[1]
@@ -327,20 +329,20 @@ def create_ploty(
     b_right = right_fit[1]
     c_right = right_fit[2]
 
-    left_fitx = a_left * ploty**2 + b_left * ploty + c_left
-    right_fitx = a_right * ploty**2 + b_right * ploty + c_right
+    left_fitx = a_left * plot_y**2 + b_left * plot_y + c_left
+    right_fitx = a_right * plot_y**2 + b_right * plot_y + c_right
 
     if utils.DEBUG:
         log.info("Finished creating y values for plotting")
 
-    return ploty, left_fitx, right_fitx
+    return plot_y, left_fitx, right_fitx
 
 
 @utils.timer(name="draw", end=True)
 def draw_lines(
     image: MatLike,
     warped_image: MatLike,
-    ploty: np.ndarray,
+    plot_y: np.ndarray,
     left_fitx: np.ndarray,
     right_fitx: np.ndarray,
     plot: bool = False
@@ -359,7 +361,7 @@ def draw_lines(
     warped_image : MatLike
         The binary warped image to draw the lane lines.
 
-    ploty : np.ndarray
+    plot_y : np.ndarray
         The y values for plotting the lane lines.
 
     left_fitx : np.ndarray
@@ -386,9 +388,9 @@ def draw_lines(
         color_warp = np.dstack((color_warp, color_warp, color_warp))
 
     # Recast the x and y points into usable format for cv.fillPoly()
-    points_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
+    points_left = np.array([np.transpose(np.vstack([left_fitx, plot_y]))])
     points_right = np.array(
-        [np.flipud(np.transpose(np.vstack([right_fitx, ploty])))]
+        [np.flipud(np.transpose(np.vstack([right_fitx, plot_y])))]
     )
     points = np.hstack((points_left, points_right))
 
