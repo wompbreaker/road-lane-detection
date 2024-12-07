@@ -10,6 +10,7 @@ from .line_finding import (
     previous_window,
     create_ploty,
 )
+from .calculations import display_curvature_offset
 
 __all__ = [
     "camera_calibration",
@@ -20,4 +21,5 @@ __all__ = [
     "slide_window",
     "create_ploty",
     "draw_lines",
+    "display_curvature_offset",
 ]
