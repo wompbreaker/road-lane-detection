@@ -61,3 +61,7 @@ VIDEO_OUTPUT_PATH = 'outputs/videos/{name}_output.mp4'
 # Line finding parameters
 MARGIN = 100
 MINIMUM_PIXELS = 50
+
+# Pixel to meter conversion
+YM_PER_PIX = 30 / 720
+XM_PER_PIX = 3.7 / 700

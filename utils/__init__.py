@@ -30,4 +30,6 @@ __all__ = [
     "MINIMUM_PIXELS",
     "SRC_POINTS",
     "DST_POINTS",
+    "YM_PER_PIX",
+    "XM_PER_PIX",
 ]
